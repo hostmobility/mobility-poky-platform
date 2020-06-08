@@ -6,7 +6,6 @@
   <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
   <remote fetch="https://github.com/Freescale" name="freescale"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
-  <remote fetch="https://gitlab.com/hostmobility/" name="hmgitlab"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
   
 
@@ -24,7 +23,6 @@
   <project remote="freescale" revision="dunfell" name="meta-freescale-distro" path="sources/meta-freescale-distro"/>
   <project remote="freescale" revision="dunfell" name="Documentation" path="sources/Documentation"/>
   
-  <project remote="hmgitlab" revision="master" name="meta-mobilityx" path="sources/meta-mobilityx"/>
   <project remote="hm" revision="master" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
   <project remote="hm" revision="master" name="meta-hostmobility-distro" path="sources/meta-hostmobility-distro"/>
 
