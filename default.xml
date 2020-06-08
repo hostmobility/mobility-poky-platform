@@ -6,7 +6,7 @@
   <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
   <remote fetch="https://github.com/Freescale" name="freescale"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
-  <remote fetch="https://gitlab.com/hostmobility/" name="hmgitlab"/>
+  <remote fetch="git@gitlab.com:hostmobility/" name="hmgitlab"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
   
 
