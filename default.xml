@@ -7,6 +7,8 @@
   <remote fetch="https://github.com/Freescale" name="freescale"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
+  <remote fetch="http://gitlab.com/hostmobility/" name="hmlab"/>
+
   
 
   <project remote="yocto" revision="dunfell" name="poky" path="sources/poky"/>
@@ -24,6 +26,6 @@
   <project remote="freescale" revision="dunfell" name="Documentation" path="sources/Documentation"/>
   
   <project remote="hm" revision="master" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project remote="hm" revision="master" name="meta-hostmobility-distro" path="sources/meta-hostmobility-distro"/>
+  <project remote="hmlab" revision="convert-repo" name="mobilityx-bringup" path="sources/meta-hostmobility-distro"/>
 
 </manifest>
