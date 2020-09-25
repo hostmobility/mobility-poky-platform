@@ -25,6 +25,6 @@
   <project remote="freescale" revision="dunfell" name="Documentation" path="sources/Documentation"/>
   
   <project remote="hm" revision="master" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project remote="hm" revision="convert-repo" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
+  <project remote="hm" revision="master" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
 
 </manifest>
