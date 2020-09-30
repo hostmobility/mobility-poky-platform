@@ -1,6 +1,4 @@
-# mx5-platform
-
-Temporary manifest location for mx5
+# Host mMbility platform poky
 
 # Host Mobility Yocto/OE-core Setup
 
