@@ -1,4 +1,4 @@
-# Host mMbility platform poky
+# Host Mobility platform poky
 
 # Host Mobility Yocto/OE-core Setup
 
