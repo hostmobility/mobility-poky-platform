@@ -13,6 +13,7 @@
   <remote name="yocto"       fetch="https://git.yoctoproject.org/git"/>
   <remote name="sbabic"      fetch="https://github.com/sbabic"/>
   <remote name="variscite"   fetch="https://github.com/varigit"/>
+  <remote name="hm"          fetch="https://github.com/hostmobility/"/>
  
   <project name="fsl-community-bsp-base"   path="sources/base"                     remote="community"   revision="5a551f453260bd19895e4d847877874eaa51fde3">
     <linkfile src="README"                       dest="README"/>
@@ -39,4 +40,7 @@
   <project name="meta-variscite-imx"       path="sources/meta-variscite-imx"       remote="variscite"   revision="d4cba7412ae7063f30bfd5862fa77546c71a4111">
     <linkfile src="scripts/var-setup-release.sh" dest="var-setup-release.sh"/>
   </project>
+
+  <project name="meta-hostmobility-bsp"    path="sources/meta-hostmobility-bsp"    remote="hm"          revision="master"/>
+  <project name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" remote="hm"        revision="master"/>
 </manifest>
