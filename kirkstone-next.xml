@@ -17,5 +17,6 @@
 
   <project remote="hm" revision="kirkstone" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
   <project remote="hm" revision="kirkstone" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
-
+  <project remote="hm" revision="master" name="mx4-deploy" path="mx4-deploy"/>
+ 
 </manifest>
