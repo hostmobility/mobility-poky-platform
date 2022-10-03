@@ -1,0 +1,92 @@
+#!/bin/bash 
+
+set -e # exit on errors 
+set -x # print each line as is executes
+
+MYBUILDDIR="build-$DISTRO"
+
+configure_git()
+{
+	git config --global user.email "support@hostmobility.com"
+	git config --global user.name "Host Mobility Support"
+	git config --global color.ui true
+}
+check_environment()
+{
+    if [[ -z $MANIFEST_REPO || -z $MANIFEST_BRANCH || -z $MANIFEST_FILE ]]; then 
+		echo >&2 \
+		"MANIFEST_REPO, MANIFEST_BRANCH and MANIFEST_FILE \
+		 environment variables needed "
+		return 1
+	fi 
+}
+
+# NOTE: repo sync will rebase its repos
+repo_init_sync()
+{
+	check_environment
+	# -q for quiet
+	repo init -u "$MANIFEST_REPO" -b "$MANIFEST_BRANCH" -m "$MANIFEST_FILE"
+	repo sync #--force-sync
+	repo status
+}
+
+# Check if we can access our private/invited access only git repo 
+check_private_repo_access()
+{
+	if ! git ls-remote "$MANIFEST_REPO" ; then
+
+		echo "ERROR, cannot access $MANIFEST_REPO. Need ssh-agent with github key" > /dev/stderr
+		return 1
+	fi
+}
+
+# Helper to get a configured kernel(defconfig) and a devshell kernel
+devshell_kernel()
+{
+	bitbake -c configure virtual/kernel
+	bitbake -c devshell virtual/kernel
+}
+
+# Initialize build environment for bitbake command and more
+init_build()
+{
+	configure_git
+	# If poky folder does not exist, get source repos using Google Repo
+	POKYFOLDER="sources/poky"
+	if [[ ! -d $POKYFOLDER ]]; then
+		repo_init_sync
+	fi
+	export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf 
+	source $POKYFOLDER/oe-init-build-env "$1"
+}
+
+
+# Setup bitbake, leaves us in build folder 
+init_build "$MYBUILDDIR"
+
+# RUN addtional arguments after "bid" e.g. "bid bitbake console-hostmobility-image"
+echo Now running "$@"
+"$@"
+
+# BELOW: EXAMPLES OF additional arguments
+# bitbake curl
+# bitbake -c clean virtual/kernel
+# bitbake -c configure virtual/kernel
+# bitbake -c populate_sdk console-hostmobility-image
+
+# bitbake -c clean imx-boot
+# bitbake -c clean virtual/bootloader
+# bitbake -c compile imx-boot
+# bitbake -c configure virtual/bootloader
+# bitbake -c devshell virtual/bootloader
+# bitbake imx-boot
+# bitbake virtual/bootloader
+# devshell_kernel
+# bitbake -c clean console-hostmobility-image
+# bitbake -c clean imx-boot
+
+# ...AND THE IMAGES...
+# bitbake core-image-minimal
+# bitbake console-hostmobility-image
+
