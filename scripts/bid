@@ -1,0 +1,54 @@
+#!/bin/bash -e
+
+CONTAINERNAME="hm_platform_builder"
+
+build_container()
+{
+  if [[ -z $1 ]]; then echo >&2 "Usage: build_container container-name"; return 1; fi 
+  docker build -t $1 - <<DockerFileHere
+  from crops/poky 
+  USER root
+  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev vim
+  RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo
+  RUN mv repo /usr/bin/
+  RUN chmod a+x /usr/bin/repo
+  RUN ssh-keyscan -t rsa github.com >> /etc/ssh/ssh_known_hosts
+  RUN ssh-keyscan -t rsa gitlab.com >> /etc/ssh/ssh_known_hosts
+DockerFileHere
+}
+
+# Build container from inline Docker file above
+build_container $CONTAINERNAME
+
+# Copy build script template if build_script does not exist
+SCRIPTNAME="build_script"
+
+if [[ ! -f $SCRIPTNAME ]]; then
+  TEMPLATENAME=$(dirname $0)/${SCRIPTNAME}_template
+  cp -v "$TEMPLATENAME" "$SCRIPTNAME"
+fi
+
+# These are environment vars availble inside docker container.
+# Set them here or before running this script
+MANIFEST_REPO="https://github.com/hostmobility/mobility-poky-platform.git"
+MANIFEST_BRANCH="hmx"
+MANIFEST_FILE="variscite-kirkstone-5.15.xml" # System flavor
+DISTRO=fslc-xwayland
+# DL_DIR="$HOME/YOCTO_DOWNLOADS"
+DL_DIR="/mnt/bygge/DOWNLOADS"
+MACHINE=imx8mp-var-dart-hmx1
+
+docker run -it --rm=true \
+  -e "MACHINE=$MACHINE" \
+  -e "DISTRO=$DISTRO" \
+  -e "MANIFEST_REPO=$MANIFEST_REPO" \
+  -e "MANIFEST_BRANCH=$MANIFEST_BRANCH" \
+  -e "MANIFEST_FILE=$MANIFEST_FILE" \
+  -e "DL_DIR=$DL_DIR" \
+  -v "$SSH_AUTH_SOCK:/ssh.socket" \
+  -e "SSH_AUTH_SOCK=/ssh.socket" \
+  -v "${DL_DIR}:${DL_DIR}" \
+  -v "${PWD}:${PWD}" \
+  --workdir="${PWD}" \
+   $CONTAINERNAME  \
+  ./"$SCRIPTNAME" $@

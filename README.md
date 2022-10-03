@@ -1,6 +1,6 @@
 # Host Mobility platform poky
 
-# Host Mobility Yocto/OE-core Setup
+## Host Mobility Yocto/OE-core Setup
 
 Fork of [fsl-community-bsp-platform](https://github.com/Freescale/fsl-community-bsp-platform -b dunfell/)
 
@@ -20,3 +20,14 @@ curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > ~/bin/rep
 chmod a+x ~/bin/repo
 ```
 
+##  Building in Docker
+
+There is a script that uses Docker that builds this platform without needing to install Yocto building tools on the host.
+
+Usage:
+1. download [bid](scripts/bid) and [build_script_template](scripts/build_script_template) (template script that is run inside docker. copied to build-folder as ```build_script```)
+2. Put these two files the same folder, the build folder or e.g. ```$HOME/.bin```
+
+```bash
+mkdir mybuild; cd mybuild; bid console-hostmobility-image 
+```
