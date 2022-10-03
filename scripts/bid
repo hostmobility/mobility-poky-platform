@@ -34,11 +34,13 @@ MANIFEST_REPO="https://github.com/hostmobility/mobility-poky-platform.git"
 MANIFEST_BRANCH="hmx"
 MANIFEST_FILE="variscite-kirkstone-5.15.xml" # System flavor
 DISTRO=fslc-xwayland
-# DL_DIR="$HOME/YOCTO_DOWNLOADS"
-DL_DIR="/mnt/bygge/DOWNLOADS"
+DL_DIR="$HOME/YOCTO_DOWNLOADS"
 MACHINE=imx8mp-var-dart-hmx1
 
-docker run -it --rm=true \
+# Are we running interactively?
+if [[ -t 0 ]] ; then USETTY="-t" ; else unset USETTY; fi
+
+docker run -i $USETTY --rm=true \
   -e "MACHINE=$MACHINE" \
   -e "DISTRO=$DISTRO" \
   -e "MANIFEST_REPO=$MANIFEST_REPO" \
