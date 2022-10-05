@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest>
 
-  <default sync-j="4" revision="dunfell"/>
+  <default sync-j="4" revision="kirkstone"/>
 
   <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
   <remote fetch="https://github.com/Freescale" name="freescale"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
-  <remote fetch="git://github.com/" name="github" />
-  <remote fetch="http://github.com/hostmobility/" name="browser"/>
+  <remote fetch="https://github.com/kraj" name="clang"/>
+  <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
   <remote alias="repo" fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
   
 
@@ -22,7 +22,9 @@
   <project remote="hm" revision="kirkstone" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
   <project remote="hmssh" revision="master" name="mx4-deploy.git" path="mx4-deploy"/>
   
-   <project remote="github" name="kraj/meta-clang.git" path="meta-clang" upstream="kirkstone-clang12" />
-   <project remote="github" name="OSSystems/meta-browser.git" path="meta-browser" upstream="master" revision="c7651db9417d0694a05438967ca24b26ec69f9e1" />
+  <project remote="clang" name="meta-clang" path="sources/meta-clang" />
+  <project remote="OSSystems" name="meta-browser" path="sources/meta-browser" revision="c7651db9417d0694a05438967ca24b26ec69f9e1" />
  
 </manifest>
+
+
