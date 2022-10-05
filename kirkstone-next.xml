@@ -7,6 +7,8 @@
   <remote fetch="https://github.com/Freescale" name="freescale"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
+  <remote fetch="git://github.com/" name="github" />
+  <remote fetch="http://github.com/hostmobility/" name="browser"/>
   <remote alias="repo" fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
   
 
@@ -19,5 +21,8 @@
   <project remote="hm" revision="kirkstone" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
   <project remote="hm" revision="kirkstone" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
   <project remote="hmssh" revision="master" name="mx4-deploy.git" path="mx4-deploy"/>
+  
+   <project remote="github" name="kraj/meta-clang.git" path="meta-clang" upstream="kirkstone-clang12" />
+   <project remote="github" name="OSSystems/meta-browser.git" path="meta-browser" upstream="master" revision="c7651db9417d0694a05438967ca24b26ec69f9e1" />
  
 </manifest>
