@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-CONTAINERNAME="hm_platform_builder"
+CONTAINERNAME="hm_platform_builder_next"
 
 build_container()
 {
@@ -8,7 +8,7 @@ build_container()
   docker build -t $1 - <<DockerFileHere
   from crops/poky 
   USER root
-  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev vim
+  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool
   RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo
   RUN mv repo /usr/bin/
   RUN chmod a+x /usr/bin/repo
