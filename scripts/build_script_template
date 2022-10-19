@@ -3,7 +3,7 @@
 set -e # exit on errors 
 set -x # print each line as is executes
 
-MYBUILDDIR="build-$DISTRO"
+MYBUILDDIR="${BUILD_TAG}build-$DISTRO"
 
 configure_git()
 {
@@ -59,6 +59,11 @@ init_build()
 	fi
 	export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf 
 	source $POKYFOLDER/oe-init-build-env "$1"
+	# Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
+	if [[ -d $DL_DIR ]]; then 
+		grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
+	fi
+	cat conf/local.conf
 }
 
 
