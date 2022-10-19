@@ -47,6 +47,7 @@ docker run -i $USETTY --rm=true \
   -e "MANIFEST_BRANCH=$MANIFEST_BRANCH" \
   -e "MANIFEST_FILE=$MANIFEST_FILE" \
   -e "DL_DIR=$DL_DIR" \
+  -e "BUILD_TAG=$BUILD_TAG" \
   -v "$SSH_AUTH_SOCK:/ssh.socket" \
   -e "SSH_AUTH_SOCK=/ssh.socket" \
   -v "${DL_DIR}:${DL_DIR}" \
