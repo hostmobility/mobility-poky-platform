@@ -1,11 +1,13 @@
 #!/bin/bash -e
 
-CONTAINERNAME="hm_platform_builder_next"
+set -e
 
+CONTAINERNAME="hm_platform_builder_next"
 build_container()
 {
   if [[ -z $1 ]]; then echo >&2 "Usage: build_container container-name"; return 1; fi 
-  docker build -t $1 - <<DockerFileHere
+  # --no-cache can be used as an argument to docker build
+  docker build -t "$1" - <<DockerFileHere
   from crops/poky 
   USER root
   RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool
@@ -18,40 +20,43 @@ DockerFileHere
 }
 
 # Build container from inline Docker file above
-build_container $CONTAINERNAME
+if [[ -z $SKIP_DOCKER_BUILD ]]; then build_container $CONTAINERNAME; fi
 
 # Copy build script template if build_script does not exist
 SCRIPTNAME="build_script"
-
 if [[ ! -f $SCRIPTNAME ]]; then
-  TEMPLATENAME=$(dirname $0)/${SCRIPTNAME}_template
-  cp -v "$TEMPLATENAME" "$SCRIPTNAME"
+	BID_PATH=$(realpath "$0")
+	TEMPLATENAME=$(dirname "$BID_PATH")/${SCRIPTNAME}_template
+	cp -v "$TEMPLATENAME" "$SCRIPTNAME"
 fi
 
-# These are environment vars availble inside docker container.
-# Set them here or before running this script
-MANIFEST_REPO="https://github.com/hostmobility/mobility-poky-platform.git"
-MANIFEST_BRANCH="hmx"
-MANIFEST_FILE="variscite-kirkstone-5.15.xml" # System flavor
-DISTRO=fslc-xwayland
-DL_DIR="$HOME/YOCTO_DOWNLOADS"
-MACHINE=imx8mp-var-dart-hmx1
+
+: "${DL_DIR:="$HOME/YOCTO_DOWNLOADS"}"
+
+# Check that we are not running from within build folder.
+if [[ -f conf/local.conf ]]; then
+	echo "Please cd .. and run $0 with build folder $PWD as argument"
+	exit 1
+fi
 
 # Are we running interactively?
 if [[ -t 0 ]] ; then USETTY="-t" ; else unset USETTY; fi
 
+
 docker run -i $USETTY --rm=true \
-  -e "MACHINE=$MACHINE" \
-  -e "DISTRO=$DISTRO" \
-  -e "MANIFEST_REPO=$MANIFEST_REPO" \
-  -e "MANIFEST_BRANCH=$MANIFEST_BRANCH" \
-  -e "MANIFEST_FILE=$MANIFEST_FILE" \
-  -e "DL_DIR=$DL_DIR" \
-  -e "BUILD_TAG=$BUILD_TAG" \
-  -v "$SSH_AUTH_SOCK:/ssh.socket" \
+  -e MACHINE \
+  -e DISTRO \
+  -e MANIFEST_BRANCH \
+  -e MANIFEST_FILE \
+  -e DL_DIR \
+  -e BUILDDIR \
+  -e BUILD_TAG \
+  -e SKIP_SYNC \
+  -e SKIP_INIT_BUILD \
   -e "SSH_AUTH_SOCK=/ssh.socket" \
+  -v "$SSH_AUTH_SOCK:/ssh.socket" \
   -v "${DL_DIR}:${DL_DIR}" \
   -v "${PWD}:${PWD}" \
   --workdir="${PWD}" \
    $CONTAINERNAME  \
-  ./"$SCRIPTNAME" $@
+   bash -c "source ./$SCRIPTNAME; ${*:-show_help}" 
