@@ -1,0 +1,174 @@
+#!/bin/bash 
+
+set -e # exit on errors 
+# set -x # print each line as is executes
+
+MANIFEST_REPO="https://github.com/hostmobility/mobility-poky-platform.git"
+
+configure_git()
+{
+	git config --global user.email "support@hostmobility.com"
+	git config --global user.name "Host Mobility Support"
+	git config --global color.ui true
+}
+export -f configure_git
+
+check_environment()
+{
+    if [[ -z $MANIFEST_REPO || -z $MANIFEST_BRANCH || -z $MANIFEST_FILE ]]; then 
+		echo >&2 \
+		"MANIFEST_REPO, MANIFEST_BRANCH and MANIFEST_FILE \
+		 environment variables needed "
+		return 1
+	fi 
+}
+export -f check_environment
+
+# NOTE: repo sync will rebase its repos
+repo_init_sync()
+{
+	check_environment
+	# -q for quiet
+	echo repo init -u "$MANIFEST_REPO" -b "$MANIFEST_BRANCH" -m "$MANIFEST_FILE"
+	repo init -u "$MANIFEST_REPO" -b "$MANIFEST_BRANCH" -m "$MANIFEST_FILE"
+	repo sync #--force-sync
+}
+export -f repo_init_sync
+
+# Check if we can access our private/invited access only git repo 
+check_private_repo_access()
+{
+	if ! git ls-remote "$MANIFEST_REPO" ; then
+
+		echo "ERROR, cannot access $MANIFEST_REPO. Need ssh-agent with github key" > /dev/stderr
+		return 1
+	fi
+}
+export -f check_private_repo_access
+
+# Helper to get a configured kernel(defconfig) and a devshell kernel
+devshell_kernel()
+{
+	bitbake -c configure virtual/kernel
+	bitbake -c devshell virtual/kernel
+}
+export -f devshell_kernel
+
+# Initialize build environment for bitbake command and more. export SKIP_SYNC=1 to skip this step
+init_build()
+{
+	configure_git
+	# If poky folder does not exist, get source repos using Google Repo
+	POKYFOLDER="sources/poky"
+	if [[ $SKIP_SYNC != 1 ]] || ! repo --show-toplevel; then
+		repo_init_sync
+	else
+		echo SKIPPING SYNC
+	fi
+	export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf 
+	source $POKYFOLDER/oe-init-build-env "$1"
+	# Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
+	if [[ -d $DL_DIR ]]; then 
+		grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
+	fi
+
+	# Pass information about versions to bitbake 
+	export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
+	PLATFORM_VERSION="$(git -C ../.repo/manifests rev-parse --short HEAD)"
+	export PLATFORM_VERSION
+	PLATFORM_VERSION_DETAILS="$(get_platform_details)"
+	export PLATFORM_VERSION_DETAILS
+}
+export -f init_build
+
+get_platform_details()
+(
+	repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
+)
+
+show_help()
+{
+	USED_ENVIRONMENT="MACHINE DISTRO MANIFEST_BRANCH MANIFEST_FILE DL_DIR BUILDDIR BUILD_TAG SKIP_SYNC SKIP_INIT_BUILD"
+
+cat <<-'ExamplesHere'
+	# Usage:
+
+	bid 'command(s) within single quotes'
+
+	# Examples:
+
+	bid 'bitbake -c clean console-hostmobility-image'
+	bid 'bitbake -c clean imx-boot'
+	bid 'bitbake -c clean virtual/bootloader'
+	bid 'bitbake -c clean virtual/kernel'
+	bid 'bitbake -c compile imx-boot'
+	bid 'bitbake -c configure virtual/bootloader'
+	bid 'bitbake -c configure virtual/kernel'
+	bid 'bitbake -c devshell virtual/bootloader'
+	bid 'bitbake -c populate_sdk console-hostmobility-image'
+
+	bid 'bitbake console-hostmobility-image'
+	bid 'bitbake core-image-minimal'
+
+	bid 'bitbake curl'
+	bid 'bitbake imx-boo'
+	bid 'bitbake virtual/bootloade'
+	bid 'devshell_kernel'
+
+	# Enviroment:
+	Set SKIP_SYNC=1 to not repo sync
+
+ExamplesHere
+for v in $USED_ENVIRONMENT; do
+	echo "$v=${!v}"
+done
+
+}
+export show_help
+
+export -f get_platform_details
+
+# Assign default values if not yet set
+
+: "${MACHINE:="imx8mp-var-dart-hmx1"}"
+
+if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
+	: "${MANIFEST_BRANCH:="hmx"}"
+	: "${MANIFEST_FILE:="variscite-kirkstone-5.15.xml"}" # System flavor
+	: "${DISTRO:=fslc-xwayland}"
+elif [[ $MACHINE == mx5-pt ]]; then
+	: "${MANIFEST_BRANCH:="kirkstone"}"
+	: "${MANIFEST_FILE:="kirkstone-next.xml"}" # System flavor
+	: "${DISTRO:=fslc-wayland}"
+fi
+
+
+# Setup bitbake, leaves us in build folder 
+if [[ -z $SKIP_INIT_BUILD ]]; then init_build "$BUILDDIR"; fi
+
+# Set default build tag to build folder and current time
+: "${BUILD_TAG:=$PWD-$(date --iso-8601=seconds)}"
+
+export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
+
+# BELOW: EXAMPLES OF additional arguments
+# bitbake curl
+# bitbake -c clean virtual/kernel
+# bitbake -c configure virtual/kernel
+# bitbake -c populate_sdk console-hostmobility-image
+
+# bitbake -c clean imx-boot
+# bitbake -c clean virtual/bootloader
+# bitbake -c compile imx-boot
+# bitbake -c configure virtual/bootloader
+# bitbake -c devshell virtual/bootloader
+# bitbake imx-boot
+# bitbake virtual/bootloader
+# devshell_kernel
+# bitbake -c clean console-hostmobility-image
+# bitbake -c clean imx-boot
+
+# ...AND THE IMAGES...
+# bitbake core-image-minimal
+# bitbake console-hostmobility-image
+

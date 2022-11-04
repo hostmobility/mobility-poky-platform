@@ -1,6 +1,7 @@
 # Host Mobility platform poky
 
 # Host Mobility Yocto/OE-core Setup
+
 To simplify installation we provide a repo manifest which manages the different git repositories
 and the used versions. (more on repo: http://code.google.com/p/git-repo/ )
 
@@ -26,7 +27,20 @@ repo init -m kirkstone-next.xml
 repo sync --force-sync
 ```
 
-Setup build environment.
+##  Building in Docker
+
+There is a script that uses Docker that builds this platform without needing to install Yocto building tools on the host.
+
+Usage:
+1. download [bid](scripts/bid) and [build_script_template](scripts/build_script_template) (template script that is run inside docker. copied to build-folder as ```build_script```)
+2. Put these two files the same folder, the build folder or e.g. ```$HOME/.bin```
+
+```bash
+mkdir mybuild; cd mybuild; bid console-hostmobility-image 
+```
+
+
+## Setup build environment.
 ```
 export DIR_WORK=$PWD/../
 export BUILD_TAG=*yourTag*
