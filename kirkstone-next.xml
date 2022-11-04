@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+
+  <default sync-j="4" revision="kirkstone"/>
+
+  <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
+  <remote fetch="https://github.com/Freescale" name="freescale"/>
+  <remote fetch="https://github.com/openembedded" name="oe"/>
+  <remote fetch="http://github.com/hostmobility/" name="hm"/>
+  <remote fetch="https://github.com/kraj" name="clang"/>
+  <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
+  <remote alias="repo" fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
+  
+
+  <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="poky" path="sources/poky"/>
+  <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale"/>
+  <project remote="freescale" revision="kirkstone" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro"/>
+
+  <project remote="oe" revision="kirkstone" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded"/>
+
+  <project remote="hm" revision="kirkstone" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project remote="hm" revision="master" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
+  <project remote="hmssh" revision="master" name="mx4-deploy.git" path="mx4-deploy"/>
+  
+  <project remote="clang" name="meta-clang" path="sources/meta-clang" />
+  <project remote="OSSystems" name="meta-browser" path="sources/meta-browser" revision="c7651db9417d0694a05438967ca24b26ec69f9e1" />
+ 
+</manifest>
+
+
