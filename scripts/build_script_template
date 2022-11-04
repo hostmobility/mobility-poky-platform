@@ -194,7 +194,7 @@ fi
 if [[ -z $SKIP_INIT_BUILD ]]; then init_build "$MYBUILDDIR"; fi
 
 # Set default build tag to build folder and current time
-: "${BUILD_TAG:=debug-$(date --iso-8601=days)}"
+: "${BUILD_TAG:=debug-$(date --iso-8601=date)}"
 
 export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
 

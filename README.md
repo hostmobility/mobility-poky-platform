@@ -1,6 +1,7 @@
 # Host Mobility platform poky
 
 # Host Mobility Yocto/OE-core Setup
+
 To simplify installation we provide a repo manifest which manages the different git repositories
 and the used versions. (more on repo: http://code.google.com/p/git-repo/ )
 
