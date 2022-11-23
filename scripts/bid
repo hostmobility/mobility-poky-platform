@@ -10,7 +10,7 @@ build_container()
   docker build -t "$1" - <<DockerFileHere
   from crops/poky 
   USER root
-  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool
+  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools
   RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo
   RUN mv repo /usr/bin/
   RUN chmod a+x /usr/bin/repo
@@ -30,33 +30,23 @@ if [[ ! -f $SCRIPTNAME ]]; then
 	cp -v "$TEMPLATENAME" "$SCRIPTNAME"
 fi
 
-
 : "${DL_DIR:="$HOME/YOCTO_DOWNLOADS"}"
 
 # Check that we are not running from within build folder.
 if [[ -f conf/local.conf ]]; then
-	echo "Please cd .. and run $0 with build folder $PWD as argument"
+	echo "This is a build folder. Please cd .. and run $0 with build folder $PWD as argument"
 	exit 1
 fi
 
 # Are we running interactively?
 if [[ -t 0 ]] ; then USETTY="-t" ; else unset USETTY; fi
 
-
 docker run -i $USETTY --rm=true \
-  -e MACHINE \
-  -e DISTRO \
-  -e MANIFEST_BRANCH \
-  -e MANIFEST_FILE \
-  -e DL_DIR \
-  -e BUILDDIR \
-  -e BUILD_TAG \
-  -e SKIP_SYNC \
-  -e SKIP_INIT_BUILD \
+  -e DL_DIR="$DL_DIR"\
   -e "SSH_AUTH_SOCK=/ssh.socket" \
   -v "$SSH_AUTH_SOCK:/ssh.socket" \
   -v "${DL_DIR}:${DL_DIR}" \
   -v "${PWD}:${PWD}" \
   --workdir="${PWD}" \
    $CONTAINERNAME  \
-   bash -c "source ./$SCRIPTNAME; ${*:-show_help}" 
+   ./$SCRIPTNAME "$@"
