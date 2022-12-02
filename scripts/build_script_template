@@ -155,7 +155,7 @@ done
 export -f get_platform_details
 
 # Parse arguments
-while getopts 'a:b:d:hm:nr:s' option; do
+while getopts 'a:b:d:f:hm:nr:s' option; do
 	case $option in 
 		a) export MANIFEST_BRANCH=$OPTARG ;;
 		b) MYBUILDDIR=$OPTARG ;;
