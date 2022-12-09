@@ -10,6 +10,7 @@
   <remote fetch="https://github.com/kraj" name="clang"/>
   <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
   <remote alias="repo" fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
+  <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
   
 
   <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="poky" path="sources/poky"/>
@@ -30,5 +31,3 @@
     <linkfile dest="README-IMXBSP" src="README"/>
   </project>
 </manifest>
-
-
