@@ -24,7 +24,11 @@
   
   <project remote="clang" name="meta-clang" path="sources/meta-clang" />
   <project remote="OSSystems" name="meta-browser" path="sources/meta-browser" revision="c7651db9417d0694a05438967ca24b26ec69f9e1" />
- 
+  <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" revision="cca772a457a75b2661371932ff79c392da3118db" upstream="master"/>
+  <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="refs/tags/rel_imx_5.15.52_2.1.0" upstream="kirkstone-5.15.52-2.1.0">
+    <linkfile dest="imx-setup-release.sh" src="tools/imx-setup-release.sh"/>
+    <linkfile dest="README-IMXBSP" src="README"/>
+  </project>
 </manifest>
 
 
