@@ -25,8 +25,19 @@ repo init -u https://github.com/hostmobility/mobility-poky-platform -b master
 repo init -m kirkstone-next.xml
 repo sync --force-sync
 ```
+##  Building in Docker
 
-Setup build environment.
+There is a script that uses Docker that builds this platform without needing to install Yocto building tools on the host.
+
+Usage:
+1. download [bid](scripts/bid) and [build_script_template](scripts/build_script_template) (template script that is run inside docker. copied to build-folder as ```build_script```)
+2. Put these two files the same folder, the build folder or e.g. ```$HOME/.bin```
+
+```bash
+mkdir mybuild; cd mybuild; bid console-hostmobility-image 
+```
+
+##  Or setup build environment.
 ```
 export DIR_WORK=$PWD/../
 export BUILD_TAG=*yourTag*
@@ -58,14 +69,4 @@ plug in to USB port.
 push reset button for 1 sec.
 wait(1-2min)
 when finished func led will blink green.
-##  Building in Docker
-
-There is a script that uses Docker that builds this platform without needing to install Yocto building tools on the host.
-
-Usage:
-1. download [bid](scripts/bid) and [build_script_template](scripts/build_script_template) (template script that is run inside docker. copied to build-folder as ```build_script```)
-2. Put these two files the same folder, the build folder or e.g. ```$HOME/.bin```
-
-```bash
-mkdir mybuild; cd mybuild; bid console-hostmobility-image 
 ```
