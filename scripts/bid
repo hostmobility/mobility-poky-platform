@@ -43,7 +43,6 @@ if [[ -t 0 ]] ; then USETTY="-t" ; else unset USETTY; fi
 
 docker run -i $USETTY --rm=true \
   -e DL_DIR="$DL_DIR"\
-  -v $HOME/.ssh:/home/pokyuser/.ssh \
   -e "SSH_AUTH_SOCK=/ssh.socket" \
   -v "$SSH_AUTH_SOCK:/ssh.socket" \
   -v "${DL_DIR}:${DL_DIR}" \
