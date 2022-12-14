@@ -72,6 +72,10 @@ init_build()
 	if [[ -d $DL_DIR ]]; then 
 		grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
 	fi
+	# Set deploy folder in conf/local.conf if $DEPLOYDIR is a folder and not yet set
+	if [[ -d $DEPLOYDIR ]]; then 
+		grep "DEPLOYDIR=" conf/local.conf || echo "DEPLOYDIR=\"$DEPLOYDIR\"" >> conf/local.conf;
+	fi
 
 	# Pass information about versions to bitbake 
 	export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"

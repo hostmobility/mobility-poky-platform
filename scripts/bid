@@ -32,6 +32,9 @@ fi
 
 : "${DL_DIR:="$HOME/YOCTO_DOWNLOADS"}"
 
+#Default deploy location
+: "${DEPLOYDIR:="$BUILDDIR/tmp"}"
+
 # Check that we are not running from within build folder.
 if [[ -f conf/local.conf ]]; then
 	echo "This is a build folder. Please cd .. and run $0 with build folder $PWD as argument"
@@ -42,7 +45,8 @@ fi
 if [[ -t 0 ]] ; then USETTY="-t" ; else unset USETTY; fi
 
 docker run -i $USETTY --rm=true \
-  -e DL_DIR="$DL_DIR"\
+  -e DL_DIR="$DL_DIR" \
+  -e DEPLOYDIR="$DEPLOYDIR" \
   -e "SSH_AUTH_SOCK=/ssh.socket" \
   -v "$SSH_AUTH_SOCK:/ssh.socket" \
   -v "${DL_DIR}:${DL_DIR}" \
