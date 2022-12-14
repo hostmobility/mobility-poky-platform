@@ -20,7 +20,7 @@
   <project remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" revision="8f2dc1023482863e2630d1b94052c41ce748b38f"/>
 
   <project remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" revision="80b54abfa5c036086082109fc6538b69abb319d0" />
-  <project remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" revision="e44606851fcb215a1ce47185764bd030f2595be4" />
+  <project remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" revision="151623019b9ed43dd5faec90a4a061fb7d5bcad6" />
   <project remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" revision="ed08d0efba2486351eb7c7719e6723e3d1861909" />
   
   <project remote="clang" name="meta-clang" path="sources/meta-clang" revision="d669d873edf68dc7440bb07096737203bb7ec505" />
