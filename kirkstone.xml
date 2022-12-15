@@ -13,20 +13,20 @@
   <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
   
 
-  <project remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" revision="602922d492351ee747d2ff00f8ed5aab284a706b" />
-  <project remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" revision="06e1cf4099caa53da33c10e1884064f73dc184dd" />
-  <project remote="freescale" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro" revision="fc15f5003043da23212596be7366ae2547c308ad"/>
+  <project revision="24a3f7b3648185e33133f5d96b184a6cb6524f3d" remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" />
+  <project revision="c82d4634e7aba8bc0de73ce1dfc997b630051571" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
+  <project revision="d5bbb487b2816dfc74984a78b67f7361ce404253" remote="freescale" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro" />
 
-  <project remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" revision="8f2dc1023482863e2630d1b94052c41ce748b38f"/>
+  <project revision="744a4b6eda88b9a9ca1cf0df6e18be384d9054e3" remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" />
 
-  <project remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" revision="80b54abfa5c036086082109fc6538b69abb319d0" />
-  <project remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" revision="151623019b9ed43dd5faec90a4a061fb7d5bcad6" />
-  <project remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" revision="ed08d0efba2486351eb7c7719e6723e3d1861909" />
+  <project revision="80b54abfa5c036086082109fc6538b69abb319d0" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project revision="042df25e25585e3d1be0deecd443d0c5f9b2962f" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
+  <project revision="ed08d0efba2486351eb7c7719e6723e3d1861909" remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" />
   
-  <project remote="clang" name="meta-clang" path="sources/meta-clang" revision="d669d873edf68dc7440bb07096737203bb7ec505" />
-  <project remote="OSSystems" name="meta-browser" path="sources/meta-browser" revision="e232c2e21b96dc092d9af8bea4b3a528e7a46dd6" />
-  <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" revision="cca772a457a75b2661371932ff79c392da3118db" upstream="master"/>
-  <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="refs/tags/rel_imx_5.15.52_2.1.0" upstream="kirkstone-5.15.52-2.1.0">
+  <project revision="c728c3f9168c8a4ed05163a51dd48ca1ad8ac21d" remote="clang" name="meta-clang" path="sources/meta-clang" />
+  <project revision="e232c2e21b96dc092d9af8bea4b3a528e7a46dd6" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
+  <project revision="9482648daf0bb42ff3475e7892542cf99f3b8d48" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
+  <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="refs/tags/rel_imx_5.15.71_2.2.0" upstream="kirkstone-5.15.71-2.2.0">
     <linkfile dest="imx-setup-release.sh" src="tools/imx-setup-release.sh"/>
     <linkfile dest="README-IMXBSP" src="README"/>
   </project>
