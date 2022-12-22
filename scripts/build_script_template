@@ -120,6 +120,7 @@ cat <<-'ExamplesHere'
 		m) export MACHINE=$OPTARG ;;
 		n) SKIP_INIT_BUILD=1 ;;
 		r) export MANIFEST_REPO=$OPTARG ;;
+		t) export BUILD_TAG=$OPTARG ;;
 		s) DO_SYNC=1 ;;
 		h|*) usage ;;
 
@@ -155,7 +156,7 @@ done
 export -f get_platform_details
 
 # Parse arguments
-while getopts 'a:b:d:f:hm:nr:s' option; do
+while getopts 'a:b:d:f:hm:nr:t:s' option; do
 	case $option in 
 		a) export MANIFEST_BRANCH=$OPTARG ;;
 		b) MYBUILDDIR=$OPTARG ;;
@@ -164,6 +165,7 @@ while getopts 'a:b:d:f:hm:nr:s' option; do
 		m) export MACHINE=$OPTARG ;;
 		n) SKIP_INIT_BUILD=1 ;;
 		r) export MANIFEST_REPO=$OPTARG ;;
+		t) export BUILD_TAG=$OPTARG ;;
 		s) DO_SYNC=1 ;;
 		h|*) usage ;;
 	esac
