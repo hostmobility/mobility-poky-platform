@@ -13,14 +13,14 @@
   <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
   
 
-  <project revision="24a3f7b3648185e33133f5d96b184a6cb6524f3d" remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" />
-  <project revision="c82d4634e7aba8bc0de73ce1dfc997b630051571" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
+  <project revision="0118853b5bc6402cc8e43be54cd62520f6c19c62" remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" />
+  <project revision="bef0618a2b9727880e62944395ea771dded431c8" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
   <project revision="d5bbb487b2816dfc74984a78b67f7361ce404253" remote="freescale" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro" />
 
-  <project revision="744a4b6eda88b9a9ca1cf0df6e18be384d9054e3" remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" />
+  <project revision="1f31570d0795da90083d1dbf28127c90908e30ee" remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" />
 
-  <project revision="f79ef70fe2f27aa4bdc31e3db7508ccceefcf201" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project revision="2e9e0bd34d3364713784c0cb609389e85fd890af" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
+  <project revision="4890a1d3a1d8b9f849c005190661fbb5c497a3d1" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project revision="6c25159bc43ab979cf654ec12c4eda37464dcbe2" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
   <project revision="ed08d0efba2486351eb7c7719e6723e3d1861909" remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" />
   
   <project revision="c728c3f9168c8a4ed05163a51dd48ca1ad8ac21d" remote="clang" name="meta-clang" path="sources/meta-clang" />
