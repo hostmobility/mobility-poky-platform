@@ -66,7 +66,11 @@ init_build()
 	fi
 
 	POKYFOLDER="sources/poky"
-	export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf 
+	if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
+		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx 
+	else
+		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic 
+	fi
 	source $POKYFOLDER/oe-init-build-env "$1"
 	# Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
 	if [[ -d $DL_DIR ]]; then 
