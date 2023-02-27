@@ -6,11 +6,15 @@
   <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
   <remote fetch="https://github.com/Freescale" name="freescale"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
+  <remote fetch="https://github.com/meta-qt5"      name="QT5"/>
+  <remote fetch="https://github.com/sbabic"        name="sbabic"/>
+  <remote fetch="https://github.com/varigit"       name="variscite"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
   <remote fetch="https://github.com/kraj" name="clang"/>
   <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
   <remote alias="repo" fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
   <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
+  <remote fetch="https://git.openembedded.org"     name="python"/>
   
 
   <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="poky" path="sources/poky"/>
@@ -18,6 +22,8 @@
   <project remote="freescale" revision="kirkstone" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro"/>
 
   <project remote="oe" revision="kirkstone" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded"/>
+  <project remote="python" upstream="kirkstone"   name="meta-python2" path="sources/meta-python2"/>
+
 
   <project remote="hm" revision="main" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
   <project remote="hm" revision="master" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
@@ -30,4 +36,13 @@
     <linkfile dest="imx-setup-release.sh" src="tools/imx-setup-release.sh"/>
     <linkfile dest="README-IMXBSP" src="README"/>
   </project>
+  <project remote="QT5" upstream="kirkstone"   name="meta-qt5"                path="sources/meta-qt5"/>
+  <project remote="sbabic" upstream="kirkstone"   name="meta-swupdate"           path="sources/meta-swupdate"/>
+  <project remote="variscite" upstream="kirkstone"   name="meta-variscite-hab"      path="sources/meta-variscite-hab"/>
+  <project remote="variscite" upstream="kirkstone"   name="meta-variscite-bsp"      path="sources/meta-variscite-bsp"/>
+  <project remote="variscite" upstream="kirkstone"   name="meta-variscite-sdk"      path="sources/meta-variscite-sdk">
+      <linkfile src="scripts/var-setup-release.sh" dest="var-setup-release.sh"/>
+  </project>
+  <project remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
+  <project remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
 </manifest>
