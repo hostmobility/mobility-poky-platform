@@ -183,16 +183,16 @@ shift $((OPTIND-1))
 : "${MACHINE:="imx8mp-var-dart-hmx1"}"
 
 if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
-	: "${MANIFEST_BRANCH:="hmx"}"
-	: "${MANIFEST_FILE:="variscite-kirkstone-5.15.xml"}" # System flavor
+	: "${MANIFEST_BRANCH:="master"}"
+	: "${MANIFEST_FILE:="kirkstone.xml"}" # System flavor
 	: "${DISTRO:=fslc-xwayland}"
 elif [[ $MACHINE == mx5-pt ]]; then
 	: "${MANIFEST_BRANCH:="master"}"
-	: "${MANIFEST_FILE:="kirkstone-next.xml"}" # System flavor
+	: "${MANIFEST_FILE:="kirkstone.xml"}" # System flavor
 	: "${DISTRO:=fslc-wayland}"
 elif [[ $MACHINE == mx4-t30 ]]; then
 	: "${MANIFEST_BRANCH:="master"}"
-	: "${MANIFEST_FILE:="kirkstone-next.xml"}" # System flavor
+	: "${MANIFEST_FILE:="kirkstone.xml"}" # System flavor
 	: "${DISTRO:="poky"}"
 fi
 
