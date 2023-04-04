@@ -10,7 +10,7 @@
   <remote fetch="https://github.com/sbabic"        name="sbabic"/>
   <remote fetch="https://github.com/varigit"       name="variscite"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
-  <remote fetch="http://gitlab.com/hostmobility/" name="hm-gitlab"/>
+  <remote fetch="ssh://git@gitlab.com/hostmobility/" name="hm-gitlab"/>
   <remote fetch="https://github.com/kraj" name="clang"/>
   <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
   <remote alias="repo" fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
