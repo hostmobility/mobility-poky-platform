@@ -16,6 +16,7 @@ build_container()
   RUN chmod a+x /usr/bin/repo
   RUN ssh-keyscan -t rsa github.com >> /etc/ssh/ssh_known_hosts
   RUN ssh-keyscan -t rsa gitlab.com >> /etc/ssh/ssh_known_hosts
+  RUN ssh-keyscan -p 2222 -t rsa gitlab.alkit.se >> /etc/ssh/ssh_known_hosts
 DockerFileHere
 }
 
