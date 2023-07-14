@@ -2,13 +2,13 @@
 
 set -e
 
-CONTAINERNAME="hm_platform_builder_next"
+CONTAINERNAME="hm_platform_builder-crops-ubuntu-20.04"
 build_container()
 {
   if [[ -z $1 ]]; then echo >&2 "Usage: build_container container-name"; return 1; fi 
   # --no-cache can be used as an argument to docker build
-  docker build -t "$1" - <<DockerFileHere
-  from crops/poky 
+  docker build  -t "$1" - <<DockerFileHere
+  from crops/poky:ubuntu-20.04
   USER root
   RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools
   RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo
