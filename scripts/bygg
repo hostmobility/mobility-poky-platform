@@ -1,0 +1,167 @@
+#!/bin/bash
+#
+
+SCRIPTNAME=$(realpath "$0")
+SCRIPT_FOLDER=$(dirname "$SCRIPTNAME")
+PLATFORM_FOLDER=$(realpath "$(dirname "$SCRIPT_FOLDER")")
+YOCTO_FOLDER="$PLATFORM_FOLDER/yocto"
+
+# Initialize Yocto enviroment 
+init_yocto_build()
+{
+	# If poky folder does not exist, get source repos using Google Repo
+	if ! repo --show-toplevel; then
+		echo "No .repo folder. Repo not initialized in or above $PWD. Use --repo-sync argument to sync"
+		exit 1
+	fi
+
+	POKYFOLDER="sources/poky"
+	if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
+		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx 
+	else
+		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic 
+	fi
+	source "$POKYFOLDER/oe-init-build-env" "$1"
+
+	# Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
+	if [[ -d $DL_DIR ]]; then 
+		grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
+	fi
+
+	# Pass information about versions to bitbake 
+	export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
+	PLATFORM_VERSION="$(git -C ../.repo/manifests rev-parse --short HEAD)"
+	export PLATFORM_VERSION
+	PLATFORM_VERSION_DETAILS="$(get_platform_details)"
+	export PLATFORM_VERSION_DETAILS
+}
+export -f init_yocto_build
+
+configure_git_if_needed()
+{
+  if ! git config user.email; then
+	git config --global user.email "support@hostmobility.com"
+	git config --global user.name "Host Mobility Support"
+	git config --global color.ui true
+  fi
+}
+
+get_platform_details()
+(
+	repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
+)
+
+CONTAINERNAME="byggcontainer:crops-ubuntu-20.04"
+build_container()
+{
+  if [[ -z $1 ]]; then echo >&2 "Usage: build_container container-name"; return 1; fi 
+  # --no-cache can be used as an argument to docker build
+  echo "Building $CONTAINERNAME"
+  docker build --quiet -t "$1" - <<DockerFileHere
+  from crops/poky:ubuntu-20.04
+  USER root
+  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools
+  RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo
+  RUN mv repo /usr/bin/
+  RUN chmod a+x /usr/bin/repo
+  RUN ssh-keyscan -t rsa github.com >> /etc/ssh/ssh_known_hosts
+  RUN ssh-keyscan -t rsa gitlab.com >> /etc/ssh/ssh_known_hosts
+  RUN ssh-keyscan -p 2222 -t rsa gitlab.alkit.se >> /etc/ssh/ssh_known_hosts
+DockerFileHere
+}
+
+# Restart script inside Docker container if not already there.
+if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
+  # Build container from inline Docker file above
+  if [[ -z $SKIP_DOCKER_BUILD ]]; then build_container $CONTAINERNAME; fi
+
+  # Are we running interactively?
+  if [[ -t 0 ]] ; then USETTY="-t" ; else unset USETTY; fi
+
+  docker run -i $USETTY --rm=true \
+    -e RUNNING_IN_DOCKER=1 \
+    -e DL_DIR="$DL_DIR"\
+    -e "SSH_AUTH_SOCK=/ssh.socket" \
+    -v "$SSH_AUTH_SOCK:/ssh.socket" \
+    -v "${DL_DIR}:${DL_DIR}" \
+    -v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}" \
+    --workdir="${PLATFORM_FOLDER}" \
+     $CONTAINERNAME  \
+     "$SCRIPTNAME" "$@"
+  # Build finished, return the Docker container exit status.
+  exit $?
+fi
+
+# ----------------  Running inside container ----------------   
+
+# Parse options or show usage which exits app
+
+LONGOPTIONS='build-tag:,build-folder:,distro:,machine:,manifest-file:,repo-sync,skip-init-build,debug'
+
+usage()
+{
+	echo "$0 - build bitbake recipes/images using docker"
+	echo "Usage: $(basename "$0" ) [options] build-command-to-run"
+	echo "options(: means required argument, :: means optional argument)"
+	for option in $(echo $LONGOPTIONS | tr , \\n); do 
+		echo "--$option"
+	done 
+	exit 1
+}
+
+options=$(getopt --options '' --longoptions "$LONGOPTIONS" -- "$@") || usage
+eval set -- "$options"
+
+while true; do
+	case "$1" in
+		'--build-tag') 
+			BUILD_TAG="$2" ; shift 2 ;;
+		'--build-folder') 
+			BUILD_FOLDER="$2" ; shift 2 ;;
+		'--distro')
+			DISTRO="$2" ; shift 2 ;;
+		'--machine')
+			MACHINE="$2" ; shift 2 ;;
+		'--manifest-file') 
+			MANIFEST_FILE="$2" ; shift 2 ;;
+		'--repo-sync') 
+			DO_SYNC=1 ; shift ;;
+		'--skip-init-build') 
+			SKIP_INIT_BUILD=1 ; shift ;;
+		'--debug') 
+			debug "$@" ; set -x; shift ;;
+		'--')
+			shift; break ;;
+		*)
+			>&2 echo 'BUG, UNHANDLED ARGUMENT!'; exit 2 ;;
+	esac
+done
+
+mkdir -p "$YOCTO_FOLDER" 
+cd "$YOCTO_FOLDER" || exit 1
+
+if [[ -n $DO_SYNC ]]; then
+	configure_git_if_needed
+	# Find out branch of platform repo 
+	BRANCH="$(git -C "$SCRIPT_FOLDER" rev-parse --abbrev-ref HEAD)"
+	# Synchronize bitbake layer repos the manifest in this repo
+	repo init file://"$PLATFORM_FOLDER" -b "$BRANCH" -m "$MANIFEST_FILE"
+	echo "Using branch $BRANCH and manifest file $MANIFEST_FILE, other files are"
+	repo sync
+	ls -- *.xml
+fi
+
+
+# Setup bitbake, leaves us in build folder 
+if [[ -z $SKIP_INIT_BUILD ]]; then init_yocto_build "$BUILD_FOLDER"; fi
+
+export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
+
+# Show usage if no build command is given
+if [[ -z "$*" ]]; then usage; fi
+
+# Call build command
+"$@"
+
+exit $?
+
