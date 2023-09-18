@@ -16,6 +16,9 @@
   <remote name="sbabic"      fetch="https://github.com/sbabic"/>
   <remote name="variscite"   fetch="https://github.com/varigit"/>
 
+  <remote fetch="http://github.com/hostmobility/" name="hm"/>
+  <remote fetch="ssh://git@gitlab.alkit.se:2222/hm" name="alkit-gitlab"/>
+
   <project name="meta-arm"                  path="sources/meta-arm"                  remote="yocto"       revision="0b5724266a8e559cac1724350c1ff2f9e6580326" upstream="mickledore"/>
   <project name="meta-security"             path="sources/meta-security"             remote="yocto"       revision="d7db0a3bd1a8639df7570483f003ce00cbe274a2" upstream="mickledore"/>
   <project name="meta-virtualization"       path="sources/meta-virtualization"       remote="yocto"       revision="2bb4071ad372d4b5a092c872c0d42b261f757681" upstream="mickledore"/>
@@ -48,4 +51,6 @@
     <linkfile src="setup-environment" dest="setup-environment"/>
     <linkfile src="README"            dest="README"/>
   </project>
+  <project remote="hm" revision="main" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project remote="alkit-gitlab" revision="main" name="meta-alkit-hm010-01-poky-distro" path="sources/meta-mobility-poky-distro"/>
 </manifest>
