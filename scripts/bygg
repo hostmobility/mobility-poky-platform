@@ -17,9 +17,9 @@ init_yocto_build()
 
 	POKYFOLDER="sources/poky"
 	if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
-		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx 
+		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx 
 	else
-		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic 
+		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic 
 	fi
 	source "$POKYFOLDER/oe-init-build-env" "$1"
 
