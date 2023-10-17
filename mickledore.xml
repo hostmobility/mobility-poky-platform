@@ -51,5 +51,6 @@
     <linkfile src="README"            dest="README"/>
   </project>
   <project remote="hm" revision="main" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project remote="alkit-gitlab" revision="main" name="meta-alkit-hm010-01-poky-distro" path="sources/meta-mobility-poky-distro"/>
+  <project remote="hm" revision="master" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
+  <project revision="107a197f820f4a18639e22ab94765ee37c85aa49" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
 </manifest>
