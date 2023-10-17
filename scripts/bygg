@@ -1,5 +1,11 @@
 #!/bin/bash
-#
+
+# Copyright (C) 2023 Host Mobility AB
+
+# This script builds packages and images for Host Mobility hardware in
+# a Docker environment.
+
+set -e
 
 SCRIPTNAME=$(realpath "$0")
 SCRIPT_FOLDER=$(dirname "$SCRIPTNAME")
@@ -9,19 +15,24 @@ YOCTO_FOLDER="$PLATFORM_FOLDER/yocto"
 # Initialize Yocto enviroment 
 init_yocto_build()
 {
-	# If poky folder does not exist, get source repos using Google Repo
-	if ! repo --show-toplevel; then
-		echo "No .repo folder. Repo not initialized in or above $PWD. Use --repo-sync argument to sync"
-		exit 1
+	POKYFOLDER="sources/poky"
+
+	if [[ ! -e "$POKYFOLDER" ]]; then
+	  echo "$POKYFOLDER does not exist. Syncing repos..."
+	  sync_manifest
 	fi
 
-	POKYFOLDER="sources/poky"
 	if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
-		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx 
+	  export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx
+	  [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx
+	  : "${BUILD_FOLDER:=build-hmx}"
 	else
-		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic 
+	  export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic
+	  [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic
+	  : "${BUILD_FOLDER:=build}"
 	fi
-	source "$POKYFOLDER/oe-init-build-env" "$1"
+
+	source "$POKYFOLDER/oe-init-build-env" "$BUILD_FOLDER"
 
 	# Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
 	if [[ -d $DL_DIR ]]; then 
@@ -44,6 +55,17 @@ configure_git_if_needed()
 	git config --global user.name "Host Mobility Support"
 	git config --global color.ui true
   fi
+}
+
+sync_manifest()
+{
+  configure_git_if_needed
+  # Find out branch of platform repo
+  BRANCH="$(git -C "$SCRIPT_FOLDER" rev-parse --abbrev-ref HEAD)"
+  # Synchronize bitbake layer repos the manifest in this repo
+  repo init file://"$PLATFORM_FOLDER" -b "$BRANCH" -m "$MANIFEST_FILE"
+  echo "Using branch $BRANCH and manifest file $MANIFEST_FILE, other files are"
+  repo sync
 }
 
 get_platform_details()
@@ -96,7 +118,9 @@ fi
 
 # Parse options or show usage which exits app
 
-LONGOPTIONS='build-tag:,build-folder:,distro:,machine:,manifest-file:,repo-sync,skip-init-build,debug'
+LONGOPTIONS='build-tag:,build-folder:,distro:,help,machine:,manifest-file:,repo-sync,skip-init-build'
+SHORTOPTIONS='t:,b:,d:,h,m:,f:,s,n'
+
 
 usage()
 {
@@ -109,27 +133,28 @@ usage()
 	exit 1
 }
 
-options=$(getopt --options '' --longoptions "$LONGOPTIONS" -- "$@") || usage
+
+options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
 eval set -- "$options"
 
 while true; do
 	case "$1" in
-		'--build-tag') 
+		'--build-tag'|'-t')
 			BUILD_TAG="$2" ; shift 2 ;;
-		'--build-folder') 
+		'--build-folder'|'-b')
 			BUILD_FOLDER="$2" ; shift 2 ;;
-		'--distro')
+		'--distro'|'-d')
 			DISTRO="$2" ; shift 2 ;;
-		'--machine')
+		'--machine'|'-m')
 			MACHINE="$2" ; shift 2 ;;
-		'--manifest-file') 
+		'--manifest-file'|'-f')
 			MANIFEST_FILE="$2" ; shift 2 ;;
-		'--repo-sync') 
+		'--repo-sync'|'-s')
 			DO_SYNC=1 ; shift ;;
-		'--skip-init-build') 
+		'--skip-init-build'|'-n')
 			SKIP_INIT_BUILD=1 ; shift ;;
-		'--debug') 
-			debug "$@" ; set -x; shift ;;
+		'--help'|'-h')
+		  usage; ;;
 		'--')
 			shift; break ;;
 		*)
@@ -137,20 +162,24 @@ while true; do
 	esac
 done
 
+# Check if MANIFEST_FILE is set and print usage if it's not
+if [[ -z "$MANIFEST_FILE" ]]; then
+  >&2 echo "MANIFEST_FILE is not set. Please set it using '--manifest-file' argument."
+  ls *.xml
+  exit 1
+fi
+
+YOCTO_FOLDER="$PLATFORM_FOLDER/$(basename $MANIFEST_FILE .xml)"
+
+echo "$YOCTO_FOLDER"
+
+
 mkdir -p "$YOCTO_FOLDER" 
 cd "$YOCTO_FOLDER" || exit 1
 
 if [[ -n $DO_SYNC ]]; then
-	configure_git_if_needed
-	# Find out branch of platform repo 
-	BRANCH="$(git -C "$SCRIPT_FOLDER" rev-parse --abbrev-ref HEAD)"
-	# Synchronize bitbake layer repos the manifest in this repo
-	repo init file://"$PLATFORM_FOLDER" -b "$BRANCH" -m "$MANIFEST_FILE"
-	echo "Using branch $BRANCH and manifest file $MANIFEST_FILE, other files are"
-	repo sync
-	ls -- *.xml
+  sync_manifest
 fi
-
 
 # Setup bitbake, leaves us in build folder 
 if [[ -z $SKIP_INIT_BUILD ]]; then init_yocto_build "$BUILD_FOLDER"; fi
