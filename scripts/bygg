@@ -12,48 +12,48 @@ SCRIPT_FOLDER=$(dirname "$SCRIPTNAME")
 PLATFORM_FOLDER=$(realpath "$(dirname "$SCRIPT_FOLDER")")
 YOCTO_FOLDER="$PLATFORM_FOLDER/yocto"
 
-# Initialize Yocto enviroment 
+# Initialize Yocto enviroment
 init_yocto_build()
 {
-	POKYFOLDER="sources/poky"
+  POKYFOLDER="sources/poky"
 
-	if [[ ! -e "$POKYFOLDER" ]]; then
-	  echo "$POKYFOLDER does not exist. Syncing repos..."
-	  sync_manifest
-	fi
+  if [[ ! -e "$POKYFOLDER" ]]; then
+    echo "$POKYFOLDER does not exist. Syncing repos..."
+    sync_manifest
+  fi
 
-	if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
-	  export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx
-	  [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx
-	  : "${BUILD_FOLDER:=build-hmx}"
-	else
-	  export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic
-	  [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic
-	  : "${BUILD_FOLDER:=build}"
-	fi
+  if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
+    export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx
+    [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx
+    : "${BUILD_FOLDER:=build-hmx}"
+  else
+    export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic
+    [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic
+    : "${BUILD_FOLDER:=build}"
+  fi
 
-	source "$POKYFOLDER/oe-init-build-env" "$BUILD_FOLDER"
+  source "$POKYFOLDER/oe-init-build-env" "$BUILD_FOLDER"
 
-	# Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
-	if [[ -d $DL_DIR ]]; then 
-		grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
-	fi
+  # Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
+  if [[ -d $DL_DIR ]]; then
+    grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
+  fi
 
-	# Pass information about versions to bitbake 
-	export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
-	PLATFORM_VERSION="$(git -C ../.repo/manifests rev-parse --short HEAD)"
-	export PLATFORM_VERSION
-	PLATFORM_VERSION_DETAILS="$(get_platform_details)"
-	export PLATFORM_VERSION_DETAILS
+  # Pass information about versions to bitbake
+  export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
+  PLATFORM_VERSION="$(git -C ../.repo/manifests rev-parse --short HEAD)"
+  export PLATFORM_VERSION
+  PLATFORM_VERSION_DETAILS="$(get_platform_details)"
+  export PLATFORM_VERSION_DETAILS
 }
 export -f init_yocto_build
 
 configure_git_if_needed()
 {
   if ! git config user.email; then
-	git config --global user.email "support@hostmobility.com"
-	git config --global user.name "Host Mobility Support"
-	git config --global color.ui true
+    git config --global user.email "support@hostmobility.com"
+    git config --global user.name "Host Mobility Support"
+    git config --global color.ui true
   fi
 }
 
@@ -70,13 +70,13 @@ sync_manifest()
 
 get_platform_details()
 (
-	repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
+  repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
 )
 
 CONTAINERNAME="byggcontainer:crops-ubuntu-20.04"
 build_container()
 {
-  if [[ -z $1 ]]; then echo >&2 "Usage: build_container container-name"; return 1; fi 
+  if [[ -z $1 ]]; then echo >&2 "Usage: build_container container-name"; return 1; fi
   # --no-cache can be used as an argument to docker build
   echo "Building $CONTAINERNAME"
   docker build --quiet -t "$1" - <<DockerFileHere
@@ -101,20 +101,20 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   if [[ -t 0 ]] ; then USETTY="-t" ; else unset USETTY; fi
 
   docker run -i $USETTY --rm=true \
-    -e RUNNING_IN_DOCKER=1 \
-    -e DL_DIR="$DL_DIR"\
-    -e "SSH_AUTH_SOCK=/ssh.socket" \
-    -v "$SSH_AUTH_SOCK:/ssh.socket" \
-    -v "${DL_DIR}:${DL_DIR}" \
-    -v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}" \
-    --workdir="${PLATFORM_FOLDER}" \
-     $CONTAINERNAME  \
-     "$SCRIPTNAME" "$@"
+	 -e RUNNING_IN_DOCKER=1 \
+	 -e DL_DIR="$DL_DIR"\
+	 -e "SSH_AUTH_SOCK=/ssh.socket" \
+	 -v "$SSH_AUTH_SOCK:/ssh.socket" \
+	 -v "${DL_DIR}:${DL_DIR}" \
+	 -v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}" \
+	 --workdir="${PLATFORM_FOLDER}" \
+	 $CONTAINERNAME  \
+	 "$SCRIPTNAME" "$@"
   # Build finished, return the Docker container exit status.
   exit $?
 fi
 
-# ----------------  Running inside container ----------------   
+# ----------------  Running inside container ----------------
 
 # Parse options or show usage which exits app
 
@@ -124,13 +124,13 @@ SHORTOPTIONS='t:,b:,d:,h,m:,f:,s,n'
 
 usage()
 {
-	echo "$0 - build bitbake recipes/images using docker"
-	echo "Usage: $(basename "$0" ) [options] build-command-to-run"
-	echo "options(: means required argument, :: means optional argument)"
-	for option in $(echo $LONGOPTIONS | tr , \\n); do 
-		echo "--$option"
-	done 
-	exit 1
+  echo "$0 - build bitbake recipes/images using docker"
+  echo "Usage: $(basename "$0" ) [options] build-command-to-run"
+  echo "options(: means required argument, :: means optional argument)"
+  for option in $(echo $LONGOPTIONS | tr , \\n); do
+    echo "--$option"
+  done
+  exit 1
 }
 
 
@@ -138,28 +138,28 @@ options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usa
 eval set -- "$options"
 
 while true; do
-	case "$1" in
-		'--build-tag'|'-t')
-			BUILD_TAG="$2" ; shift 2 ;;
-		'--build-folder'|'-b')
-			BUILD_FOLDER="$2" ; shift 2 ;;
-		'--distro'|'-d')
-			DISTRO="$2" ; shift 2 ;;
-		'--machine'|'-m')
-			MACHINE="$2" ; shift 2 ;;
-		'--manifest-file'|'-f')
-			MANIFEST_FILE="$2" ; shift 2 ;;
-		'--repo-sync'|'-s')
-			DO_SYNC=1 ; shift ;;
-		'--skip-init-build'|'-n')
-			SKIP_INIT_BUILD=1 ; shift ;;
-		'--help'|'-h')
-		  usage; ;;
-		'--')
-			shift; break ;;
-		*)
-			>&2 echo 'BUG, UNHANDLED ARGUMENT!'; exit 2 ;;
-	esac
+  case "$1" in
+    '--build-tag'|'-t')
+      BUILD_TAG="$2" ; shift 2 ;;
+    '--build-folder'|'-b')
+      BUILD_FOLDER="$2" ; shift 2 ;;
+    '--distro'|'-d')
+      DISTRO="$2" ; shift 2 ;;
+    '--machine'|'-m')
+      MACHINE="$2" ; shift 2 ;;
+    '--manifest-file'|'-f')
+      MANIFEST_FILE="$2" ; shift 2 ;;
+    '--repo-sync'|'-s')
+      DO_SYNC=1 ; shift ;;
+    '--skip-init-build'|'-n')
+      SKIP_INIT_BUILD=1 ; shift ;;
+    '--help'|'-h')
+      usage; ;;
+    '--')
+      shift; break ;;
+    *)
+      >&2 echo 'BUG, UNHANDLED ARGUMENT!'; exit 2 ;;
+  esac
 done
 
 # Check if MANIFEST_FILE is set and print usage if it's not
@@ -174,14 +174,14 @@ YOCTO_FOLDER="$PLATFORM_FOLDER/$(basename $MANIFEST_FILE .xml)"
 echo "$YOCTO_FOLDER"
 
 
-mkdir -p "$YOCTO_FOLDER" 
+mkdir -p "$YOCTO_FOLDER"
 cd "$YOCTO_FOLDER" || exit 1
 
 if [[ -n $DO_SYNC ]]; then
   sync_manifest
 fi
 
-# Setup bitbake, leaves us in build folder 
+# Setup bitbake, leaves us in build folder
 if [[ -z $SKIP_INIT_BUILD ]]; then init_yocto_build "$BUILD_FOLDER"; fi
 
 export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
@@ -193,4 +193,3 @@ if [[ -z "$*" ]]; then usage; fi
 "$@"
 
 exit $?
-
