@@ -15,9 +15,8 @@
   <remote fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
   <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
   <remote fetch="https://git.openembedded.org"     name="python2"/>
-
-  <project revision="ef5214f584765810e94a6f61585ccbcd9b909502" remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" />
-  <project revision="f5cc0843233ad0df25aaf801198f67a9c1774a54" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
+  <project revision="0e4966eb77928a07230e031d6d9c477c01ec9cce" remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" />
+  <project revision="3e9ef23d98aa842cf84251a27c9b8dde8925ea61" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
   <project revision="d5bbb487b2816dfc74984a78b67f7361ce404253" remote="freescale" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro" />
 
   <project revision="9c5541f7e18a1fac3b8dea71e1ebb8398d58e6ff" remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" />
