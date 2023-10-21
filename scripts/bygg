@@ -7,10 +7,67 @@
 
 set -e
 
-SCRIPTNAME=$(realpath "$0")
+SCRIPT_NAME=$(realpath "$0")
 SCRIPT_FOLDER=$(dirname "$SCRIPTNAME")
 PLATFORM_FOLDER=$(realpath "$(dirname "$SCRIPT_FOLDER")")
-YOCTO_FOLDER="$PLATFORM_FOLDER/yocto"
+
+# Parse options or show usage which exits app
+usage()
+{
+  echo "$0 - build bitbake recipes/images using docker"
+  echo "Usage: $(basename "$0" ) [options] build-command-to-run"
+  echo "options(: means required argument, :: means optional argument)"
+  for option in $(echo $LONGOPTIONS | tr , \\n); do
+    echo "--$option"
+  done
+  exit 1
+}
+
+parse_options()
+{
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,docker-build-flag-no-cache,help,machine:,manifest-file:,repo-sync,skip-init-build'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,m:,f:,s,n'
+  options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
+  eval set -- "$options"
+  DOCKER_BUILD_FLAGS="--quiet"
+
+  while true; do
+    case "$1" in
+      '--build-tag'|'-t')
+	BUILD_TAG="$2" ; shift 2 ;;
+      '--build-folder'|'-b')
+	BUILD_FOLDER="$2" ; shift 2 ;;
+      '--delete-conf'|'-c')
+	DELETE_CONF="y" ; shift ;;
+      '--distro'|'-d')
+	DISTRO="$2" ; shift 2 ;;
+      '--docker-build-flag-no-cache'|'-g')
+	DOCKER_BUILD_FLAGS+=" --no-cache" ; shift ;;
+      '--machine'|'-m')
+	MACHINE="$2" ; shift 2 ;;
+      '--manifest-file'|'-f')
+	MANIFEST_FILE="$2" ; shift 2 ;;
+      '--repo-sync'|'-s')
+	DO_SYNC=1 ; shift ;;
+      '--skip-init-build'|'-n')
+	SKIP_INIT_BUILD=1 ; shift ;;
+      '--help'|'-h')
+	usage; ;;
+      '--')
+	shift; break ;;
+      *)
+	>&2 echo 'BUG, UNHANDLED ARGUMENT!'; exit 2 ;;
+    esac
+  done
+  BUILD_COMMAND=$@
+
+  # Check if MANIFEST_FILE is set and print usage if it's not
+  if [[ -z "$MANIFEST_FILE" ]]; then
+    >&2 echo "MANIFEST_FILE is not set. Please set it using '--manifest-file' argument."
+    ls *.xml
+    exit 1
+  fi
+}
 
 # Initialize Yocto enviroment
 init_yocto_build()
@@ -32,6 +89,11 @@ init_yocto_build()
     : "${BUILD_FOLDER:=build}"
   fi
 
+  CONF_PATH="${BUILD_FOLDER}/conf"
+  [ -d "${CONF_PATH}" ] \
+  && [ -n "${DELETE_CONF}" ] \
+  && rm -rf ${CONF_PATH} && echo "deleted $CONF_PATH"
+  
   source "$POKYFOLDER/oe-init-build-env" "$BUILD_FOLDER"
 
   # Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
@@ -73,13 +135,10 @@ get_platform_details()
   repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
 )
 
-CONTAINERNAME="byggcontainer:crops-ubuntu-20.04"
+CONTAINER_NAME="byggcontainer:crops-ubuntu-20.04"
 build_container()
 {
-  if [[ -z $1 ]]; then echo >&2 "Usage: build_container container-name"; return 1; fi
-  # --no-cache can be used as an argument to docker build
-  echo "Building $CONTAINERNAME"
-  docker build --quiet -t "$1" - <<DockerFileHere
+  docker build $DOCKER_BUILD_FLAGS -t "$CONTAINER_NAME" - <<DockerFileHere
   from crops/poky:ubuntu-20.04
   USER root
   RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools
@@ -92,10 +151,14 @@ build_container()
 DockerFileHere
 }
 
+# ----------------  SCRIPT STARTS HERE ----------------------
+
+parse_options $@
+
 # Restart script inside Docker container if not already there.
 if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   # Build container from inline Docker file above
-  if [[ -z $SKIP_DOCKER_BUILD ]]; then build_container $CONTAINERNAME; fi
+  build_container
 
   # Are we running interactively?
   if [[ -t 0 ]] ; then USETTY="-t" ; else unset USETTY; fi
@@ -108,71 +171,16 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
 	 -v "${DL_DIR}:${DL_DIR}" \
 	 -v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}" \
 	 --workdir="${PLATFORM_FOLDER}" \
-	 $CONTAINERNAME  \
-	 "$SCRIPTNAME" "$@"
+	 $CONTAINER_NAME  \
+	 "$SCRIPT_NAME" "$@"
   # Build finished, return the Docker container exit status.
   exit $?
 fi
 
 # ----------------  Running inside container ----------------
 
-# Parse options or show usage which exits app
-
-LONGOPTIONS='build-tag:,build-folder:,distro:,help,machine:,manifest-file:,repo-sync,skip-init-build'
-SHORTOPTIONS='t:,b:,d:,h,m:,f:,s,n'
-
-
-usage()
-{
-  echo "$0 - build bitbake recipes/images using docker"
-  echo "Usage: $(basename "$0" ) [options] build-command-to-run"
-  echo "options(: means required argument, :: means optional argument)"
-  for option in $(echo $LONGOPTIONS | tr , \\n); do
-    echo "--$option"
-  done
-  exit 1
-}
-
-
-options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
-eval set -- "$options"
-
-while true; do
-  case "$1" in
-    '--build-tag'|'-t')
-      BUILD_TAG="$2" ; shift 2 ;;
-    '--build-folder'|'-b')
-      BUILD_FOLDER="$2" ; shift 2 ;;
-    '--distro'|'-d')
-      DISTRO="$2" ; shift 2 ;;
-    '--machine'|'-m')
-      MACHINE="$2" ; shift 2 ;;
-    '--manifest-file'|'-f')
-      MANIFEST_FILE="$2" ; shift 2 ;;
-    '--repo-sync'|'-s')
-      DO_SYNC=1 ; shift ;;
-    '--skip-init-build'|'-n')
-      SKIP_INIT_BUILD=1 ; shift ;;
-    '--help'|'-h')
-      usage; ;;
-    '--')
-      shift; break ;;
-    *)
-      >&2 echo 'BUG, UNHANDLED ARGUMENT!'; exit 2 ;;
-  esac
-done
-
-# Check if MANIFEST_FILE is set and print usage if it's not
-if [[ -z "$MANIFEST_FILE" ]]; then
-  >&2 echo "MANIFEST_FILE is not set. Please set it using '--manifest-file' argument."
-  ls *.xml
-  exit 1
-fi
 
 YOCTO_FOLDER="$PLATFORM_FOLDER/$(basename $MANIFEST_FILE .xml)"
-
-echo "$YOCTO_FOLDER"
-
 
 mkdir -p "$YOCTO_FOLDER"
 cd "$YOCTO_FOLDER" || exit 1
@@ -190,6 +198,5 @@ export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
 if [[ -z "$*" ]]; then usage; fi
 
 # Call build command
-"$@"
+[ -n "$BUILD_COMMAND" ] && $BUILD_COMMAND
 
-exit $?
