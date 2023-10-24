@@ -122,14 +122,20 @@ configure_git_if_needed()
 sync_manifest()
 {
   configure_git_if_needed
+
+  if ! git -C "$PLATFORM_FOLDER" diff --quiet HEAD -- "$MANIFEST_FILE"; then
+    git -C "$PLATFORM_FOLDER" status
+    echo "$MANIFEST_FILE HAS CHANGES. PLEASE COMMIT FIRST!"
+    exit 1
+  fi
+
   # Find out branch of platform repo
-  BRANCH="$(git -C "$SCRIPT_FOLDER" rev-parse --abbrev-ref HEAD)"
+  MANIFEST_COMMIT_HASH="$(git -C "$PLATFORM_FOLDER" rev-parse HEAD)"
   # Synchronize bitbake layer repos the manifest in this repo
-  repo init file://"$PLATFORM_FOLDER" -b "$BRANCH" -m "$MANIFEST_FILE"
-  echo "Using branch $BRANCH and manifest file $MANIFEST_FILE, other files are"
+  repo init file://"$PLATFORM_FOLDER" -b "$MANIFEST_COMMIT_HASH" -m "$MANIFEST_FILE"
+  echo "🌲 NOTE: Build is based on manifest file $MANIFEST_FILE revision $MANIFEST_COMMIT_HASH"
   repo sync
 }
-
 get_platform_details()
 (
   repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
