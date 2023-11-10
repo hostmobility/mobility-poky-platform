@@ -29,7 +29,7 @@
   
   <project revision="2d08d6bf376a1e06c53164fd6283b03ec2309da4" remote="clang" name="meta-clang" path="sources/meta-clang" />
   <project revision="c7651db9417d0694a05438967ca24b26ec69f9e1" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
-  <project revision="cca772a457a75b2661371932ff79c392da3118db" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
+  <project revision="e60f59f3567b78286ea34337dbae468a5f18f1c6" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
   <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="43c0642ed901ab816d350d04bd3b9526f46cde5d" upstream="kirkstone-5.15.71-2.2.0"/>
   <project revision="ae8a97f79364bed1abc297636f7933d0e35f22be" remote="QT5" upstream="kirkstone"   name="meta-qt5" path="sources/meta-qt5"/>
   <project revision="7a85c71f40c4bf445f041fa7aad70733c9cbc0ba" remote="sbabic" upstream="kirkstone"   name="meta-swupdate" path="sources/meta-swupdate"/>
