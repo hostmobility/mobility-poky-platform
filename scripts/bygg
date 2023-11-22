@@ -100,8 +100,6 @@ init_yocto_build()
     fi
   fi
 
-
-    echo ------------------------  DELETING ----------------------
   CONF_PATH="${BUILD_FOLDER}/conf"
   [ -d "${CONF_PATH}" ] \
   && [ -n "${DELETE_CONF}" ] \
@@ -159,12 +157,9 @@ build_container()
 {
   # git pull crops/poky:ubuntu-20.04
   docker build $DOCKER_BUILD_FLAGS -t "$CONTAINER_NAME" - <<DockerFileHere
-  from crops/poky:ubuntu-20.04
+  from crops/poky:ubuntu-22.04
   USER root
-  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools
-  RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo
-  RUN mv repo /usr/bin/
-  RUN chmod a+x /usr/bin/repo
+  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools repo
   RUN ssh-keyscan -t rsa github.com >> /etc/ssh/ssh_known_hosts
   RUN ssh-keyscan -t rsa gitlab.com >> /etc/ssh/ssh_known_hosts
   RUN ssh-keyscan -p 2222 -t rsa gitlab.alkit.se >> /etc/ssh/ssh_known_hosts
