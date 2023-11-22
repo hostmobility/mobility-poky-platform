@@ -42,7 +42,7 @@
   <project revision="e86f4ac6ed3c18c1ed3dd76824fda4dd0e8c4f8d" remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
   <project revision="1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f" remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
 
-  <project revision="e3dbbd50d9473fdb01c148344b19604dec93c34d" remote="alkit-gitlab" name="meta-alkit-hm-wice" path="sources/meta-alkit-hm-wice/"/>
+  <project revision="84419dfdad4dfcc6b33ef759f567bc05e26e628b" remote="alkit-gitlab" name="meta-alkit-hm-wice" path="sources/meta-alkit-hm-wice"/>
 </manifest>
 
 
