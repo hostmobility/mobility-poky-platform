@@ -24,8 +24,8 @@
 
   <project revision="f02882e2aa9279ca7becca8d0cedbffe88b5a253" remote="python2" upstream="kirkstone"   name="meta-python2"            path="sources/meta-python2"/>
 
-  <project revision="ebfeabc0c4c0f3d9fa6303501c2ba3adcded3ffb" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project remote="alkit-gitlab" revision="9d1fc5df39babf5f7315529f1c766db48ab30240" name="meta-alkit-hm010-01-poky-distro" path="sources/meta-mobility-poky-distro"/>
+  <project revision="acd0ab4a09e72e9b07590a09ccf9fddfd69ca036" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project revision="0aa01d7e70f258822741d2b07612f38691b1278f" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
   <project revision="5135bc7a65919ee60c601708af2afbb047060304" remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" />
   
   <project revision="2d08d6bf376a1e06c53164fd6283b03ec2309da4" remote="clang" name="meta-clang" path="sources/meta-clang" />
@@ -41,6 +41,8 @@
   </project>
   <project revision="e86f4ac6ed3c18c1ed3dd76824fda4dd0e8c4f8d" remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
   <project revision="1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f" remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
+
+  <project revision="e3dbbd50d9473fdb01c148344b19604dec93c34d" remote="alkit-gitlab" name="meta-alkit-hm-wice" path="sources/meta-alkit-hm-wice/"/>
 </manifest>
 
 
