@@ -25,7 +25,7 @@ usage()
 
 parse_options()
 {
-  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,docker-build-flag-no-cache,help,machine:,manifest-file:,repo-sync,skip-init-build'
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,docker-build-flag-no-cache,help,machine:,manifest-file:,repo-sync,skip-init-build,templateconf:'
   SHORTOPTIONS='t:,b:,c,d:,g,h,m:,f:,s,n'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
@@ -51,6 +51,12 @@ parse_options()
 	DO_SYNC=1 ; shift ;;
       '--skip-init-build'|'-n')
 	SKIP_INIT_BUILD=1 ; shift ;;
+      '--templateconf'|'-t')
+	export TEMPLATECONF=$(realpath "$2")
+	if [[ ! -d $TEMPLATECONF ]] ; then 
+	  echo "--- ERROR! --- "$1" $TEMPLATECONF does not exist"; exit 1;
+	fi
+	shift 2 ;;
       '--help'|'-h')
 	usage; ;;
       '--')
@@ -79,16 +85,23 @@ init_yocto_build()
     sync_manifest
   fi
 
-  if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
-    export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx
-    [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx
-    : "${BUILD_FOLDER:=build-hmx}"
-  else
-    export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic
-    [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic
-    : "${BUILD_FOLDER:=build}"
+  echo PWD is $PWD
+  echo "-------------TC              $TEMPLATECONF "
+  : "${BUILD_FOLDER:=build}"
+  if [[ -z $TEMPLATECONF ]] ; then
+    echo ------------------------  there is not templateconf ---- $PWD ------------
+    if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
+      export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx
+      [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx
+      : "${BUILD_FOLDER:=build-hmx}"
+    else
+      export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic
+      [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic
+    fi
   fi
 
+
+    echo ------------------------  DELETING ----------------------
   CONF_PATH="${BUILD_FOLDER}/conf"
   [ -d "${CONF_PATH}" ] \
   && [ -n "${DELETE_CONF}" ] \
@@ -144,6 +157,7 @@ get_platform_details()
 CONTAINER_NAME="byggcontainer:crops-ubuntu-20.04"
 build_container()
 {
+  # git pull crops/poky:ubuntu-20.04
   docker build $DOCKER_BUILD_FLAGS -t "$CONTAINER_NAME" - <<DockerFileHere
   from crops/poky:ubuntu-20.04
   USER root
