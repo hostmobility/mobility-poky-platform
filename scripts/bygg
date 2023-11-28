@@ -51,11 +51,9 @@ parse_options()
 	DO_SYNC=1 ; shift ;;
       '--skip-init-build'|'-n')
 	SKIP_INIT_BUILD=1 ; shift ;;
-      '--templateconf'|'-t')
-	export TEMPLATECONF=$(realpath "$2")
-	if [[ ! -d $TEMPLATECONF ]] ; then 
-	  echo "--- ERROR! --- "$1" $TEMPLATECONF does not exist"; exit 1;
-	fi
+      '--templateconf'|'-u')
+	TEMPLATECONF=$(realpath "$2")
+	export TEMPLATECONF
 	shift 2 ;;
       '--help'|'-h')
 	usage; ;;
@@ -70,12 +68,16 @@ parse_options()
   # Check if MANIFEST_FILE is set and print usage if it's not
   if [[ -z "$MANIFEST_FILE" ]]; then
     >&2 echo "MANIFEST_FILE is not set. Please set it using '--manifest-file' argument."
-    ls *.xml
+    ls -- *.xml
     exit 1
   fi
 }
 
 # Initialize Yocto enviroment
+# If TEMPLATECONF is not defined, default to sources/meta-mobility-poky-distro/conf/templates/hmx
+# If BUILD_FOLDER is not defined, default to build-hmx for HMX, build otherwise
+# If CONF_PATH exists and --delete-conf is set, delete CONF_PATH
+# Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
 init_yocto_build()
 {
   POKYFOLDER="sources/poky"
@@ -85,20 +87,28 @@ init_yocto_build()
     sync_manifest
   fi
 
-  echo PWD is $PWD
-  echo "-------------TC              $TEMPLATECONF "
-  : "${BUILD_FOLDER:=build}"
+  echo Initializing Bitbake environment in "$PWD"
   if [[ -z $TEMPLATECONF ]] ; then
-    echo ------------------------  there is not templateconf ---- $PWD ------------
-    if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
-      export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx
-      [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx
-      : "${BUILD_FOLDER:=build-hmx}"
-    else
-      export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic
-      [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic
-    fi
+    case "$MACHINE" in
+	  imx8mp-var-dart-hmx1) 
+	    TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx
+	    [[ -d "$TEMPLATECONF" ]] || TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx
+	    ;;
+	  *) 
+	    TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic
+	    [[ -d "$TEMPLATECONF" ]] || TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic
+	    ;;
+    esac
   fi
+
+  if [[ ! -d $TEMPLATECONF ]] ; then 
+    echo "🔴  ERROR! $TEMPLATECONF does not exist"; exit 1;
+  fi
+
+  case "$MACHINE" in
+  	imx8mp-var-dart-hmx1) : "${BUILD_FOLDER:=build-hmx}" ;;
+  	*)                    : "${BUILD_FOLDER:=build}"     ;;
+  esac
 
   CONF_PATH="${BUILD_FOLDER}/conf"
   [ -d "${CONF_PATH}" ] \
@@ -107,7 +117,6 @@ init_yocto_build()
   
   source "$POKYFOLDER/oe-init-build-env" "$BUILD_FOLDER"
 
-  # Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
   if [[ -d $DL_DIR ]]; then
     grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
   fi
