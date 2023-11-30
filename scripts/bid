@@ -2,7 +2,8 @@
 
 set -e
 
-CONTAINERNAME="hm_platform_builder-crops-ubuntu-20.04"
+CONTAINER_BASE="crops/poky:ubuntu-20.04"
+CONTAINER_NAME="bid-container-${CONTAINER_BASE}"
 build_container()
 {
   if [[ -z $1 ]]; then echo >&2 "Usage: build_container container-name"; return 1; fi 
@@ -10,7 +11,7 @@ build_container()
   docker build  -t "$1" - <<DockerFileHere
   from crops/poky:ubuntu-20.04
   USER root
-  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools
+  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools python-is-python3
   RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo
   RUN mv repo /usr/bin/
   RUN chmod a+x /usr/bin/repo
@@ -21,7 +22,7 @@ DockerFileHere
 }
 
 # Build container from inline Docker file above
-if [[ -z $SKIP_DOCKER_BUILD ]]; then build_container $CONTAINERNAME; fi
+if [[ -z $SKIP_DOCKER_BUILD ]]; then build_container $CONTAINER_NAME; fi
 
 # Copy build script template if build_script does not exist
 SCRIPTNAME="build_script"
@@ -49,5 +50,5 @@ docker run -i $USETTY --rm=true \
   -v "${DL_DIR}:${DL_DIR}" \
   -v "${PWD}:${PWD}" \
   --workdir="${PWD}" \
-   $CONTAINERNAME  \
+   $CONTAINER_NAME  \
    ./$SCRIPTNAME "$@"
