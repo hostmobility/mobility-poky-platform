@@ -52,8 +52,7 @@ parse_options()
       '--skip-init-build'|'-n')
 	SKIP_INIT_BUILD=1 ; shift ;;
       '--templateconf'|'-u')
-	TEMPLATECONF=$(realpath "$2")
-	export TEMPLATECONF
+	TEMPLATECONF="$2"
 	shift 2 ;;
       '--help'|'-h')
 	usage; ;;
@@ -73,6 +72,47 @@ parse_options()
   fi
 }
 
+# Find the templates folder based on requested TEMPLATECONF
+find_templateconf()
+{
+  case "$MACHINE" in
+    imx8mp-var-dart-hmx1) machine_folder="hmx" ;;
+    *) machine_folder="generic" ;;
+  esac
+
+  if [[ -z "$1" ]]; then
+    CANDIDATES=(\
+      "sources/meta-mobility-poky-distro/conf/templates/${machine_folder}" \
+      "sources/meta-mobility-poky-distro/conf/${machine_folder}" \
+    )
+  else
+    CANDIDATES=(\
+      "$1" \
+      "../$1" \
+      "../$1/conf/templates/${machine_folder}" \
+      "../$1/conf/${machine_folder}" \
+      "$1/conf/templates/${machine_folder}" \
+      "$1/conf/${machine_folder}" \
+      "sources/$1/conf/templates/${machine_folder}" \
+      "sources/$1/conf/${machine_folder}" \
+    )
+  fi
+
+  for candidate in "${CANDIDATES[@]}"; do 
+      sample="${candidate}/local.conf.sample"
+		  if [[ -f "$sample" ]]; then
+        >&2 echo "🍏 TEMPLATECONF IS $candidate"
+        realpath "$candidate"
+        return 0
+      fi
+
+      tried_files+=$(printf '\n%s' "$sample")
+  done
+	
+  >&2 echo "🔴 No sample files found. PWD=$PWD. Tried: $tried_files"
+	return 1
+}
+
 # Initialize Yocto enviroment
 # If TEMPLATECONF is not defined, default to sources/meta-mobility-poky-distro/conf/templates/hmx
 # If BUILD_FOLDER is not defined, default to build-hmx for HMX, build otherwise
@@ -87,23 +127,7 @@ init_yocto_build()
     sync_manifest
   fi
 
-  echo Initializing Bitbake environment in "$PWD"
-  if [[ -z $TEMPLATECONF ]] ; then
-    case "$MACHINE" in
-	  imx8mp-var-dart-hmx1) 
-	    TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx
-	    [[ -d "$TEMPLATECONF" ]] || TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx
-	    ;;
-	  *) 
-	    TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic
-	    [[ -d "$TEMPLATECONF" ]] || TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic
-	    ;;
-    esac
-  fi
-
-  if [[ ! -d $TEMPLATECONF ]] ; then 
-    echo "🔴  ERROR! $TEMPLATECONF does not exist"; exit 1;
-  fi
+	TEMPLATECONF=$(find_templateconf "$TEMPLATECONF") || exit 1
 
   case "$MACHINE" in
   	imx8mp-var-dart-hmx1) : "${BUILD_FOLDER:=build-hmx}" ;;
@@ -206,7 +230,7 @@ fi
 # ----------------  Running inside container ----------------
 
 
-YOCTO_FOLDER="$PLATFORM_FOLDER/$(basename $MANIFEST_FILE .xml)"
+YOCTO_FOLDER="$PLATFORM_FOLDER/$(basename "$MANIFEST_FILE" .xml)"
 
 mkdir -p "$YOCTO_FOLDER"
 cd "$YOCTO_FOLDER" || exit 1
