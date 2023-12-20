@@ -17,7 +17,7 @@ usage()
   echo "$0 - build bitbake recipes/images using docker"
   echo "Usage: $(basename "$0" ) [options] build-command-to-run"
   echo "options(: means required argument, :: means optional argument)"
-  for option in $(echo $LONGOPTIONS | tr , \\n); do
+  for option in $(echo "$LONGOPTIONS" | tr , \\n); do
     echo "--$option"
   done
   exit 1
@@ -25,49 +25,42 @@ usage()
 
 parse_options()
 {
-  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,docker-build-flag-no-cache,help,machine:,manifest-file:,repo-sync,skip-init-build,templateconf:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,m:,f:,s,n'
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,package-server:,recipe:,repo-sync,skip-init-build,templateconf:'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,f:,r:,s,n'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
-  DOCKER_BUILD_FLAGS="--quiet"
 
   while true; do
     case "$1" in
-      '--build-tag'|'-t')
-	BUILD_TAG="$2" ; shift 2 ;;
-      '--build-folder'|'-b')
-	BUILD_FOLDER="$2" ; shift 2 ;;
-      '--delete-conf'|'-c')
-	DELETE_CONF="y" ; shift ;;
-      '--distro'|'-d')
-	DISTRO="$2" ; shift 2 ;;
-      '--docker-build-flag-no-cache'|'-g')
-	DOCKER_BUILD_FLAGS+=" --no-cache" ; shift ;;
-      '--machine'|'-m')
-	MACHINE="$2" ; shift 2 ;;
-      '--manifest-file'|'-f')
-	MANIFEST_FILE="$2" ; shift 2 ;;
-      '--repo-sync'|'-s')
-	DO_SYNC=1 ; shift ;;
-      '--skip-init-build'|'-n')
-	SKIP_INIT_BUILD=1 ; shift ;;
-      '--templateconf'|'-u')
-	TEMPLATECONF="$2"
-	shift 2 ;;
-      '--help'|'-h')
-	usage; ;;
-      '--')
-	shift; break ;;
-      *)
-	>&2 echo 'BUG, UNHANDLED ARGUMENT!'; exit 2 ;;
+      '--') shift; break ;;
+      '-b'|'--build-folder') wanted_build_folder="$2"; shift 2;;
+      '-c'|'--delete-conf') DELETE_CONF="y"; shift;;
+      '-d'|'--distro') DISTRO="$2"; shift 2;;
+      '-f'|'--manifest-file') MANIFEST_FILE="$2"; shift 2;;
+      '-g'|'--skip-docker-pull') skip_docker_pull=1; shift;;
+      '-h'|'--help') usage; ;;
+      '-i'|'--image') images+=("$2"); shift 2;;
+      '-m'|'--machine') machines+=("$2"); shift 2;;
+      '-n'|'--skip-init-build') SKIP_INIT_BUILD=1; shift;;
+      '-p'|'--package-server') package_server="$2"; shift 2;;
+      '-r'|'--recipe') recipes+=("$2"); shift 2;;
+      '-s'|'--repo-sync') DO_SYNC=1; shift;;
+      '-t'|'--build-tag') BUILD_TAG="$2"; shift 2;;
+      '-u'|'--templateconf') wanted_templateconf="$2"; shift 2;;
+      '*') >&2 echo "BUG, UNHANDLED ARGUMENT:$1 $2"; exit 2;;
     esac
   done
+
+  # Default distro to poky if it is undefined
+  : "${DISTRO:=poky}"
   BUILD_COMMAND=$@
 
   # Check if MANIFEST_FILE is set and print usage if it's not
   if [[ -z "$MANIFEST_FILE" ]]; then
-    >&2 echo "MANIFEST_FILE is not set. Please set it using '--manifest-file' argument."
-    ls -- *.xml
+    >&2 echo "🔴 MANIFEST_FILE is not set. Please set it using '--manifest-file' argument."
+    for f in *.xml; do
+      >&2 echo "--manifest-file $f"
+    done
     exit 1
   fi
 }
@@ -112,10 +105,25 @@ find_templateconf()
   >&2 echo "🔴 No sample files found. PWD=$PWD. Tried: $tried_files"
 	return 1
 }
+# Determine folder to build in.
+# parameters: User requested_build_folder(can be empty)
+# If empty is not defined, default to build-hmx for HMX, build otherwise.
+# returns: Folder to build in on stdout.
+get_build_folder()
+{
+  if [[ -z "$1" ]]; then
+    case "$MACHINE" in
+          "")  >&2 echo "🔴 Error in ${FUNCNAME[0]} Environment variable MACHINE is not defined."; return 1; ;;
+          imx8mp-var-dart-hmx1) echo "build-hmx" ;;
+          *)                    echo "build" ;;
+    esac
+  else
+    echo "build"
+  fi
+}
 
 # Initialize Yocto enviroment
 # If TEMPLATECONF is not defined, default to sources/meta-mobility-poky-distro/conf/templates/hmx
-# If BUILD_FOLDER is not defined, default to build-hmx for HMX, build otherwise
 # If CONF_PATH exists and --delete-conf is set, delete CONF_PATH
 # Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
 init_yocto_build()
@@ -127,23 +135,24 @@ init_yocto_build()
     sync_manifest
   fi
 
-	TEMPLATECONF=$(find_templateconf "$TEMPLATECONF") || exit 1
+  TEMPLATECONF=$(find_templateconf "$wanted_templateconf") || exit 1
+  export TEMPLATECONF
 
-  case "$MACHINE" in
-  	imx8mp-var-dart-hmx1) : "${BUILD_FOLDER:=build-hmx}" ;;
-  	*)                    : "${BUILD_FOLDER:=build}"     ;;
-  esac
+  build_folder=$(get_build_folder "${wanted_build_folder}")
 
-  CONF_PATH="${BUILD_FOLDER}/conf"
+  CONF_PATH="${build_folder}/conf"
   [ -d "${CONF_PATH}" ] \
   && [ -n "${DELETE_CONF}" ] \
   && rm -rf ${CONF_PATH} && echo "deleted $CONF_PATH"
-  
-  source "$POKYFOLDER/oe-init-build-env" "$BUILD_FOLDER"
+
+  source "$POKYFOLDER/oe-init-build-env" "$build_folder"
 
   if [[ -d $DL_DIR ]]; then
     grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
   fi
+
+  # Deploy images/packages in deploy below YOCTO_FOLDER e.g. kirkstone/deploy.
+  grep "DEPLOY_DIR=" conf/local.conf || echo "DEPLOY_DIR=\"$YOCTO_FOLDER/deploy\"" >> conf/local.conf;
 
   # Pass information about versions to bitbake
   export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
@@ -165,6 +174,7 @@ configure_git_if_needed()
 
 sync_manifest()
 {
+  cd "$YOCTO_FOLDER"
   configure_git_if_needed
 
   if ! git -C "$PLATFORM_FOLDER" diff --quiet HEAD -- "$MANIFEST_FILE"; then
@@ -187,11 +197,12 @@ get_platform_details()
 
 CONTAINER_BASE="crops/poky:ubuntu-20.04"
 CONTAINER_NAME="bygg-container-${CONTAINER_BASE}"
+DOCKER_BUILD_FLAGS="--quiet"
 build_container()
 {
-  docker pull "$CONTAINER_BASE"
+  (( skip_docker_pull != 1 )) && docker pull "$CONTAINER_BASE"
   docker build $DOCKER_BUILD_FLAGS -t "$CONTAINER_NAME" - <<DockerFileHere
-  from crops/poky:ubuntu-20.04
+  from ${CONTAINER_BASE}
   USER root
   RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools python-is-python3
   RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo && mv repo /usr/bin/ && chmod a+wx /usr/bin/repo
@@ -199,6 +210,31 @@ build_container()
   RUN ssh-keyscan -t rsa gitlab.com >> /etc/ssh/ssh_known_hosts
   RUN ssh-keyscan -p 2222 -t rsa gitlab.alkit.se >> /etc/ssh/ssh_known_hosts
 DockerFileHere
+}
+
+create_hm_update_image()
+{
+  echo "🟡 TODO MX-4 update image $image for $MACHINE"
+}
+
+sync_packages()
+{
+  if [[ -z $1 ]]; then
+    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages destination needed as first argument"
+    return 1
+  fi
+
+  # Create destination directory. Interpret part before an eventual ":" as
+  # a server name so run mkdir using ssh in that case.
+  IFS=":" read  -ra destination_parts <<< "$1"
+  if [[ -n ${destination_parts[1]} ]]; then
+    ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/builds"
+  else
+    mkdir -p "${destination_parts[0]}/builds"
+  fi
+    
+  rsync -avr build*/tmp/deploy/ipk/ "$package_server"/
+  rsync -avr build*/tmp/deploy/images/ "$package_server"/builds/"${BUILD_TAG}"
 }
 
 # ----------------  SCRIPT STARTS HERE ----------------------
@@ -210,43 +246,83 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   # Build container from inline Docker file above
   build_container
 
-  # Are we running interactively?
-  if [[ -t 0 ]] ; then USETTY="-t" ; else unset USETTY; fi
+  docker_args=(run -i --rm=true -e "RUNNING_IN_DOCKER=1") 
+  [[ -t 0 ]] && docker_args+=("-t")
+  [[ -n $DL_DIR ]] && docker_args+=(-e DL_DIR="$DL_DIR" -v "${DL_DIR}:${DL_DIR}")
+  [[ -d "$package_server" ]] && docker_args+=(-v "${package_server}:${package_server}")
+  docker_args+=(-e "SSH_AUTH_SOCK=/ssh.socket")
+  docker_args+=(-v "$SSH_AUTH_SOCK:/ssh.socket")
+  docker_args+=(-v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}")
+  docker_args+=(--workdir="${PLATFORM_FOLDER}")
+  docker_args+=("$CONTAINER_NAME")
+  docker_args+=("$SCRIPT_NAME" "$@")
+  docker "${docker_args[@]}" || { echo "🔴 docker ${docker_args[*]} failed" ; exit 1 ; } 
+  echo "🟢 $CONTAINER_NAME DONE OK"
 
-  docker run -i $USETTY --rm=true \
-	 -e RUNNING_IN_DOCKER=1 \
-	 -e DL_DIR="$DL_DIR"\
-	 -e "SSH_AUTH_SOCK=/ssh.socket" \
-	 -v "$SSH_AUTH_SOCK:/ssh.socket" \
-	 -v "${DL_DIR}:${DL_DIR}" \
-	 -v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}" \
-	 --workdir="${PLATFORM_FOLDER}" \
-	 $CONTAINER_NAME  \
-	 "$SCRIPT_NAME" "$@"
-  # Build finished, return the Docker container exit status.
+  for MACHINE in "${machines[@]}"; do
+    for image in "${images[@]}"; do 
+      [[ $MACHINE =~ ^mx4- ]] && create_hm_update_image
+    done
+  done
+   
+  [[ -n "$package_server" ]] && sync_packages "$package_server"
+
   exit $?
 fi
 
 # ----------------  Running inside container ----------------
 
-
+# Create working directory named after manifest file.
 YOCTO_FOLDER="$PLATFORM_FOLDER/$(basename "$MANIFEST_FILE" .xml)"
-
 mkdir -p "$YOCTO_FOLDER"
-cd "$YOCTO_FOLDER" || exit 1
 
-if [[ -n $DO_SYNC ]]; then
-  sync_manifest
+# Sync if there is no folder named sources or layers.
+[[ -d $YOCTO_FOLDER/sources ]] || [[ -d $YOCTO_FOLDER/layers ]] || DO_SYNC=1
+[[ -n $DO_SYNC ]] && sync_manifest
+
+if [[ ${#machines[@]} == 0 ]]; then
+  >&2 echo "🔴 ERROR No machine(s) to build for. Use one or more of:"
+  for conf_file in "$YOCTO_FOLDER"/*/meta-hostmobility-bsp/conf/machine/*.conf ; do 
+    >&2 echo "--machine $(basename "$conf_file" .conf)" 
+  done
+  usage
 fi
 
-# Setup bitbake, leaves us in build folder
-if [[ -z $SKIP_INIT_BUILD ]]; then init_yocto_build "$BUILD_FOLDER"; fi
+# Add receipe names from stdin to recipes_to_build. 
+# example: echo binutils | scripts/bygg or 
+# cat wanted_recipes.txt | scripts/bygg
+read -t 0 && while read -r recipe; do recipes+=("$recipe"); done
 
-export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
+# Add all images to recipes
+recipes+=("${images[@]}")
 
-# Show usage if no build command is given
-if [[ -z "$*" ]]; then usage; fi
+echo "🌲 Building ${recipes[*]} for ${machines[*]}"
 
-# Call build command
-[ -n "$BUILD_COMMAND" ] && $BUILD_COMMAND
+for MACHINE in "${machines[@]}"; do
+  export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
+
+  # Setup bitbake, leaves us in build folder
+  cd "$YOCTO_FOLDER"
+  [[ -z $SKIP_INIT_BUILD ]] && init_yocto_build
+
+  # Call custom build command first if it is defined
+  if [ -n "$BUILD_COMMAND" ]; then
+    $BUILD_COMMAND
+  elif [[ ${#recipes[@]} == 0 ]] ; then
+    >&2 echo "🔴 ERROR No recipes or build command"
+    usage
+  fi
+
+  # Build all recipes including images
+  [[ -n "${recipes[0]}" ]] && bitbake "${recipes[@]}"
+
+  # Update package indices if we are syncing to server later.
+  [[ -n "$package_server" ]] && bitbake package-index
+
+  # Create t30_hmupdate.img, vf_hmupdate.img etc.
+  for image in "${images[@]}"; do 
+    [[ $MACHINE =~ ^mx4- ]] && create_hm_update_image
+  done
+done
+
 
