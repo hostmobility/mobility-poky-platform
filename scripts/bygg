@@ -66,7 +66,11 @@ parse_options()
   fi
 }
 
-# Find the templates folder based on requested TEMPLATECONF
+# Find the templates folder based on requested wanted_templateconf
+# Arguments: path to directory with local.conf.sample or
+# meta- layer path with conf.
+# Returns: 0 on sucess, 1 on failure, found folder on stdout. 
+# Handles move to templates which Mickledore requires.
 find_templateconf()
 {
   case "$MACHINE" in
@@ -152,9 +156,6 @@ init_yocto_build()
     grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
   fi
 
-  # Deploy images/packages in deploy below YOCTO_FOLDER e.g. kirkstone/deploy.
-  grep "DEPLOY_DIR=" conf/local.conf || echo "DEPLOY_DIR=\"$YOCTO_FOLDER/deploy\"" >> conf/local.conf;
-
   # Pass information about versions to bitbake
   export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
   PLATFORM_VERSION="$(git -C ../.repo/manifests rev-parse --short HEAD)"
@@ -213,9 +214,65 @@ build_container()
 DockerFileHere
 }
 
+get_short_machine_name() 
+{
+  [[ "$MACHINE" =~ ^mx4- ]] || { >&2 echo "MACHINE=$MACHINE does not start with mx4- as expected" ; return 1 ; }
+  [[ "$MACHINE" == "mx4-c61-rio" ]] && echo c61 || echo "${MACHINE:4}"
+}
+
 create_hm_update_image()
 {
-  echo "🟡 TODO MX-4 update image $image for $MACHINE"
+  echo "☕ Creating update image $image for $MACHINE"
+  short_machine="$(get_short_machine_name)"
+  cd "$YOCTO_FOLDER"
+
+  # Allow hostmobility/buildplatform-mx4:2.0, which runs as uid = 1000 to write
+  # to mx4-deploy. This directory was created by our crops/poky based container
+  # which runs as the current user which might be different.
+  chmod o+w mx4-deploy
+
+  cat >build_mx4-v2.sh <<'EOF'
+#!/bin/bash -e
+echo "Start build make_system.sh deploy only!"
+cd mx4-deploy
+
+# Clean up old directories. make_system.sh requires it!
+sudo rm -rf deploy-*
+
+DEPLOY_DIR=../build/tmp/deploy/images/$MACHINE
+
+if [[ "$SHORT_MACHINE" == "c61" ]]; then 
+  root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.tar.xz
+else 
+  root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.ext3
+fi
+
+dtb="$DEPLOY_DIR/tegra30-mx4-t30.dtb"
+
+./make_system.sh \
+  -t "$SHORT_MACHINE" \
+  -r "$root_filesystem" \
+  -k "$DEPLOY_DIR/uImage" \
+  -d "$dtb"
+
+EOF
+
+  docker run --rm --privileged \
+      --workdir="$PWD" \
+      -v "$PWD":"$PWD" \
+      -e MACHINE="$MACHINE" \
+      -e SHORT_MACHINE="$short_machine" \
+      -e TARGET_IMAGE="$image" \
+      -e BUILD_TAG="$BUILD_TAG" \
+      hostmobility/buildplatform-mx4:2.0 \
+      bash ./build_mx4-v2.sh
+
+  # Copy created e.g. *_hmupdate.img back to Yocto deploy dir to keep them.
+  hmupdate_archive=build/tmp/deploy/images/"${MACHINE}/hmupdate-${image}"
+  [[ -d "$hmupdate_archive" ]] || mkdir "$hmupdate_archive" 
+  cp \
+    mx4-deploy/deploy-mx4-"${short_machine}/${BUILD_TAG}-mx4-${short_machine}"/* \
+    "${hmupdate_archive}/"
 }
 
 sync_packages()
@@ -241,6 +298,10 @@ sync_packages()
 # ----------------  SCRIPT STARTS HERE ----------------------
 
 parse_options $@
+
+# Create and enter working directory named after manifest file
+YOCTO_FOLDER="$PLATFORM_FOLDER/$(basename "$MANIFEST_FILE" .xml)"
+mkdir -p "$YOCTO_FOLDER"
 
 # Restart script inside Docker container if not already there.
 if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
@@ -297,7 +358,7 @@ read -t 0 && while read -r recipe; do recipes+=("$recipe"); done
 # Add all images to recipes
 recipes+=("${images[@]}")
 
-echo "🌲 Building ${recipes[*]} for ${machines[*]}"
+echo "⏳ Building ${recipes[*]} for ${machines[*]}"
 
 for MACHINE in "${machines[@]}"; do
   export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
@@ -326,5 +387,6 @@ for MACHINE in "${machines[@]}"; do
   done
 
 done
+exit 0
 
 
