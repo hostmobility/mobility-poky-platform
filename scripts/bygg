@@ -25,8 +25,8 @@ usage()
 
 parse_options()
 {
-  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,package-server:,recipe:,repo-sync,skip-init-build,templateconf:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,f:,r:,s,n'
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,package-server:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
 
@@ -42,6 +42,7 @@ parse_options()
       '-i'|'--image') images+=("$2"); shift 2;;
       '-m'|'--machine') machines+=("$2"); shift 2;;
       '-n'|'--skip-init-build') SKIP_INIT_BUILD=1; shift;;
+      '-o'|'--populate-sdk') populate_sdk="$2"; shift;;
       '-p'|'--package-server') package_server="$2"; shift 2;;
       '-r'|'--recipe') recipes+=("$2"); shift 2;;
       '-s'|'--repo-sync') DO_SYNC=1; shift;;
@@ -321,8 +322,9 @@ for MACHINE in "${machines[@]}"; do
 
   # Create t30_hmupdate.img, vf_hmupdate.img etc.
   for image in "${images[@]}"; do 
-    [[ $MACHINE =~ ^mx4- ]] && create_hm_update_image
+    [[ -n "$populate_sdk" ]] && bitbake -c populate_sdk "$image"
   done
+
 done
 
 
