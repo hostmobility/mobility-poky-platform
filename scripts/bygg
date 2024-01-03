@@ -1,0 +1,394 @@
+#!/bin/bash
+
+# Copyright (C) 2023 Host Mobility AB
+
+# This script builds packages and images for Host Mobility hardware in
+# a Docker environment.
+
+set -e
+
+SCRIPT_NAME=$(realpath "$0")
+SCRIPT_FOLDER=$(dirname "$SCRIPTNAME")
+PLATFORM_FOLDER=$(realpath "$(dirname "$SCRIPT_FOLDER")")
+
+# Parse options or show usage which exits app
+usage()
+{
+  echo "$0 - build bitbake recipes/images using docker"
+  echo "Usage: $(basename "$0" ) [options] build-command-to-run"
+  echo "options(: means required argument, :: means optional argument)"
+  for option in $(echo "$LONGOPTIONS" | tr , \\n); do
+    echo "--$option"
+  done
+  exit 1
+}
+
+parse_options()
+{
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,package-server:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n'
+  options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
+  eval set -- "$options"
+
+  while true; do
+    case "$1" in
+      '--') shift; break ;;
+      '-b'|'--build-folder') wanted_build_folder="$2"; shift 2;;
+      '-c'|'--delete-conf') DELETE_CONF="y"; shift;;
+      '-d'|'--distro') DISTRO="$2"; shift 2;;
+      '-f'|'--manifest-file') MANIFEST_FILE="$2"; shift 2;;
+      '-g'|'--skip-docker-pull') skip_docker_pull=1; shift;;
+      '-h'|'--help') usage; ;;
+      '-i'|'--image') images+=("$2"); shift 2;;
+      '-m'|'--machine') machines+=("$2"); shift 2;;
+      '-n'|'--skip-init-build') SKIP_INIT_BUILD=1; shift;;
+      '-o'|'--populate-sdk') populate_sdk="$2"; shift;;
+      '-p'|'--package-server') package_server="$2"; shift 2;;
+      '-r'|'--recipe') recipes+=("$2"); shift 2;;
+      '-s'|'--repo-sync') DO_SYNC=1; shift;;
+      '-t'|'--build-tag') BUILD_TAG="$2"; shift 2;;
+      '-u'|'--templateconf') wanted_templateconf="$2"; shift 2;;
+      '*') >&2 echo "BUG, UNHANDLED ARGUMENT:$1 $2"; exit 2;;
+    esac
+  done
+
+  # Default distro to poky if it is undefined
+  : "${DISTRO:=poky}"
+  BUILD_COMMAND=$@
+
+  # Check if MANIFEST_FILE is set and print usage if it's not
+  if [[ -z "$MANIFEST_FILE" ]]; then
+    >&2 echo "🔴 MANIFEST_FILE is not set. Please set it using '--manifest-file' argument."
+    for f in *.xml; do
+      >&2 echo "--manifest-file $f"
+    done
+    exit 1
+  fi
+}
+
+# Find the templates folder based on requested wanted_templateconf
+# Arguments: path to directory with local.conf.sample or
+# meta- layer path with conf.
+# Returns: 0 on sucess, 1 on failure, found folder on stdout.
+# Handles move to templates which Mickledore requires.
+find_templateconf()
+{
+  case "$MACHINE" in
+    imx8mp-var-dart-hmx1) machine_folder="hmx" ;;
+    *) machine_folder="generic" ;;
+  esac
+
+  if [[ -z "$1" ]]; then
+    CANDIDATES=(\
+      "sources/meta-mobility-poky-distro/conf/templates/${machine_folder}" \
+      "sources/meta-mobility-poky-distro/conf/${machine_folder}" \
+    )
+  else
+    CANDIDATES=(\
+      "$1" \
+      "../$1" \
+      "../$1/conf/templates/${machine_folder}" \
+      "../$1/conf/${machine_folder}" \
+      "$1/conf/templates/${machine_folder}" \
+      "$1/conf/${machine_folder}" \
+      "sources/$1/conf/templates/${machine_folder}" \
+      "sources/$1/conf/${machine_folder}" \
+    )
+  fi
+
+  for candidate in "${CANDIDATES[@]}"; do
+      sample="${candidate}/local.conf.sample"
+      if [[ -f "$sample" ]]; then
+        >&2 echo "🍏 TEMPLATECONF IS $candidate"
+        realpath "$candidate"
+        return 0
+      fi
+
+      tried_files+=$(printf '\n%s' "$sample")
+  done
+
+  >&2 echo "🔴 No sample files found. PWD=$PWD. Tried: $tried_files"
+  return 1
+}
+# Determine folder to build in.
+# parameters: User requested_build_folder(can be empty)
+# If empty is not defined, default to build-hmx for HMX, build otherwise.
+# returns: Folder to build in on stdout.
+get_build_folder()
+{
+  if [[ -z "$1" ]]; then
+    case "$MACHINE" in
+          "")  >&2 echo "🔴 Error in ${FUNCNAME[0]} Environment variable MACHINE is not defined."; return 1; ;;
+          imx8mp-var-dart-hmx1) echo "build-hmx" ;;
+          *)                    echo "build" ;;
+    esac
+  else
+    echo "build"
+  fi
+}
+
+# Initialize Yocto enviroment
+# If TEMPLATECONF is not defined, default to sources/meta-mobility-poky-distro/conf/templates/hmx
+# If CONF_PATH exists and --delete-conf is set, delete CONF_PATH
+# Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
+init_yocto_build()
+{
+  POKYFOLDER="sources/poky"
+
+  if [[ ! -e "$POKYFOLDER" ]]; then
+    echo "$POKYFOLDER does not exist. Syncing repos..."
+    sync_manifest
+  fi
+
+  TEMPLATECONF=$(find_templateconf "$wanted_templateconf") || exit 1
+  export TEMPLATECONF
+
+  build_folder=$(get_build_folder "${wanted_build_folder}")
+
+  CONF_PATH="${build_folder}/conf"
+  [ -d "${CONF_PATH}" ] \
+  && [ -n "${DELETE_CONF}" ] \
+  && rm -rf ${CONF_PATH} && echo "deleted $CONF_PATH"
+
+  source "$POKYFOLDER/oe-init-build-env" "$build_folder"
+
+  if [[ -d $DL_DIR ]]; then
+    grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
+  fi
+
+  # Pass information about versions to bitbake
+  export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
+  PLATFORM_VERSION="$(git -C ../.repo/manifests rev-parse --short HEAD)"
+  export PLATFORM_VERSION
+  PLATFORM_VERSION_DETAILS="$(get_platform_details)"
+  export PLATFORM_VERSION_DETAILS
+}
+export -f init_yocto_build
+
+configure_git_if_needed()
+{
+  if ! git config user.email; then
+    git config --global user.email "support@hostmobility.com"
+    git config --global user.name "Host Mobility Support"
+    git config --global color.ui true
+  fi
+}
+
+sync_manifest()
+{
+  cd "$YOCTO_FOLDER"
+  configure_git_if_needed
+
+  if ! git -C "$PLATFORM_FOLDER" diff --quiet HEAD -- "$MANIFEST_FILE"; then
+    git -C "$PLATFORM_FOLDER" status
+    echo "$MANIFEST_FILE HAS CHANGES. PLEASE COMMIT FIRST!"
+    exit 1
+  fi
+
+  # Find out branch of platform repo
+  MANIFEST_COMMIT_HASH="$(git -C "$PLATFORM_FOLDER" rev-parse HEAD)"
+  # Synchronize bitbake layer repos the manifest in this repo
+  repo init file://"$PLATFORM_FOLDER" -b "$MANIFEST_COMMIT_HASH" -m "$MANIFEST_FILE"
+  echo "🌲 NOTE: Build is based on manifest file $MANIFEST_FILE revision $MANIFEST_COMMIT_HASH"
+  repo sync
+}
+get_platform_details()
+(
+  repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
+)
+
+CONTAINER_BASE="crops/poky:ubuntu-20.04"
+CONTAINER_NAME="bygg-container-${CONTAINER_BASE}"
+DOCKER_BUILD_FLAGS="--quiet"
+build_container()
+{
+  (( skip_docker_pull != 1 )) && docker pull "$CONTAINER_BASE"
+  docker build $DOCKER_BUILD_FLAGS -t "$CONTAINER_NAME" - <<DockerFileHere
+  from ${CONTAINER_BASE}
+  USER root
+  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools python-is-python3
+  RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo && mv repo /usr/bin/ && chmod a+wx /usr/bin/repo
+  RUN ssh-keyscan -t rsa github.com >> /etc/ssh/ssh_known_hosts
+  RUN ssh-keyscan -t rsa gitlab.com >> /etc/ssh/ssh_known_hosts
+  RUN ssh-keyscan -p 2222 -t rsa gitlab.alkit.se >> /etc/ssh/ssh_known_hosts
+DockerFileHere
+}
+
+get_short_machine_name()
+{
+  [[ "$MACHINE" =~ ^mx4- ]] || { >&2 echo "MACHINE=$MACHINE does not start with mx4- as expected" ; return 1 ; }
+  [[ "$MACHINE" == "mx4-c61-rio" ]] && echo c61 || echo "${MACHINE:4}"
+}
+
+create_hm_update_image()
+{
+  echo "☕ Creating update image $image for $MACHINE"
+  short_machine="$(get_short_machine_name)"
+  cd "$YOCTO_FOLDER"
+
+  # Allow hostmobility/buildplatform-mx4:2.0, which runs as uid = 1000 to write
+  # to mx4-deploy. This directory was created by our crops/poky based container
+  # which runs as the current user which might be different.
+  chmod o+w mx4-deploy
+
+  cat >build_mx4-v2.sh <<'EOF'
+#!/bin/bash -e
+echo "Start build make_system.sh deploy only!"
+cd mx4-deploy
+
+# Clean up old directories. make_system.sh requires it!
+sudo rm -rf deploy-*
+
+DEPLOY_DIR=../build/tmp/deploy/images/$MACHINE
+
+if [[ "$SHORT_MACHINE" == "c61" ]]; then
+  root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.tar.xz
+  dtb=$(find $DEPLOY_DIR/ -name "vf61*-${MACHINE}.dtb")
+else
+  root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.ext3
+  dtb=$(find $DEPLOY_DIR/ -name "tegra*-${MACHINE}.dtb")
+fi
+
+./make_system.sh \
+  -t "$SHORT_MACHINE" \
+  -r "$root_filesystem" \
+  -k "$DEPLOY_DIR/uImage" \
+  -d "$dtb"
+
+EOF
+
+  docker run --rm --privileged \
+      --workdir="$PWD" \
+      -v "$PWD":"$PWD" \
+      -e MACHINE="$MACHINE" \
+      -e SHORT_MACHINE="$short_machine" \
+      -e TARGET_IMAGE="$image" \
+      -e BUILD_TAG="$BUILD_TAG" \
+      hostmobility/buildplatform-mx4:2.0 \
+      bash ./build_mx4-v2.sh
+
+  # Copy created e.g. release tar.gz that include *_hmupdate.img back to Yocto deploy dir to keep them.
+  hmupdate_archive=build/tmp/deploy/images/"${MACHINE}/hmupdate-${image}"
+  [[ -d "$hmupdate_archive" ]]
+    rm -r "$hmupdate_archive"
+
+  [[ -d "$hmupdate_archive" ]] || mkdir "$hmupdate_archive"
+  cp \
+    mx4-deploy/deploy-mx4-${short_machine}/release/*.tar.gz "${hmupdate_archive}/"
+}
+
+sync_packages()
+{
+  if [[ -z $1 ]]; then
+    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages destination needed as first argument"
+    return 1
+  fi
+
+  # Create destination directory. Interpret part before an eventual ":" as
+  # a server name so run mkdir using ssh in that case.
+  IFS=":" read  -ra destination_parts <<< "$1"
+  if [[ -n ${destination_parts[1]} ]]; then
+    ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/builds"
+  else
+    mkdir -p "${destination_parts[0]}/builds"
+  fi
+
+  rsync -avr build*/tmp/deploy/ipk/ "$package_server"/
+  rsync -avr build*/tmp/deploy/images/ "$package_server"/builds/"${BUILD_TAG}"
+}
+
+# ----------------  SCRIPT STARTS HERE ----------------------
+
+parse_options $@
+
+# Create and enter working directory named after manifest file
+YOCTO_FOLDER="$PLATFORM_FOLDER/$(basename "$MANIFEST_FILE" .xml)"
+mkdir -p "$YOCTO_FOLDER"
+
+# Restart script inside Docker container if not already there.
+if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
+  # Build container from inline Docker file above
+  build_container
+
+  docker_args=(run -i --rm=true -e "RUNNING_IN_DOCKER=1") 
+  [[ -t 0 ]] && docker_args+=("-t")
+  [[ -n $DL_DIR ]] && docker_args+=(-e DL_DIR="$DL_DIR" -v "${DL_DIR}:${DL_DIR}")
+  [[ -d "$package_server" ]] && docker_args+=(-v "${package_server}:${package_server}")
+  docker_args+=(-e "SSH_AUTH_SOCK=/ssh.socket")
+  docker_args+=(-v "$SSH_AUTH_SOCK:/ssh.socket")
+  docker_args+=(-v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}")
+  docker_args+=(--workdir="${PLATFORM_FOLDER}")
+  docker_args+=("$CONTAINER_NAME")
+  docker_args+=("$SCRIPT_NAME" "$@")
+  docker "${docker_args[@]}" || { echo "🔴 docker ${docker_args[*]} failed" ; exit 1 ; }
+  echo "🟢 $CONTAINER_NAME DONE OK"
+
+  for MACHINE in "${machines[@]}"; do
+    for image in "${images[@]}"; do
+      [[ $MACHINE =~ ^mx4- ]] && create_hm_update_image
+    done
+  done
+
+  [[ -n "$package_server" ]] && sync_packages "$package_server"
+
+  exit $?
+fi
+
+# ----------------  Running inside container ----------------
+
+# Create working directory named after manifest file.
+YOCTO_FOLDER="$PLATFORM_FOLDER/$(basename "$MANIFEST_FILE" .xml)"
+mkdir -p "$YOCTO_FOLDER"
+
+# Sync if there is no folder named sources or layers.
+[[ -d $YOCTO_FOLDER/sources ]] || [[ -d $YOCTO_FOLDER/layers ]] || DO_SYNC=1
+[[ -n $DO_SYNC ]] && sync_manifest
+
+if [[ ${#machines[@]} == 0 ]]; then
+  >&2 echo "🔴 ERROR No machine(s) to build for. Use one or more of:"
+  for conf_file in "$YOCTO_FOLDER"/*/meta-hostmobility-bsp/conf/machine/*.conf ; do
+    >&2 echo "--machine $(basename "$conf_file" .conf)"
+  done
+  usage
+fi
+
+# Add receipe names from stdin to recipes_to_build.
+# example: echo binutils | scripts/bygg or
+# cat wanted_recipes.txt | scripts/bygg
+read -t 0 && while read -r recipe; do recipes+=("$recipe"); done
+
+# Add all images to recipes
+recipes+=("${images[@]}")
+
+echo "⏳ Building ${recipes[*]} for ${machines[*]}"
+
+for MACHINE in "${machines[@]}"; do
+  export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
+
+  # Setup bitbake, leaves us in build folder
+  cd "$YOCTO_FOLDER"
+  [[ -z $SKIP_INIT_BUILD ]] && init_yocto_build
+
+  # Call custom build command first if it is defined
+  if [ -n "$BUILD_COMMAND" ]; then
+    $BUILD_COMMAND
+  elif [[ ${#recipes[@]} == 0 ]] ; then
+    >&2 echo "🔴 ERROR No recipes or build command"
+    usage
+  fi
+
+  # Build all recipes including images
+  [[ -n "${recipes[0]}" ]] && bitbake "${recipes[@]}"
+
+  # Update package indices if we are syncing to server later.
+  [[ -n "$package_server" ]] && bitbake package-index
+
+  # Create t30_hmupdate.img, vf_hmupdate.img etc.
+  for image in "${images[@]}"; do
+    [[ -n "$populate_sdk" ]] && bitbake -c populate_sdk "$image"
+  done
+
+done
+exit 0
+
+

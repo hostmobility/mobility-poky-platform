@@ -10,6 +10,7 @@
   <remote fetch="https://github.com/sbabic"        name="sbabic"/>
   <remote fetch="https://github.com/varigit"       name="variscite"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
+  <remote fetch="ssh://git@gitlab.alkit.se:2222/hm" name="alkit-gitlab"/>
   <remote fetch="https://github.com/kraj" name="clang"/>
   <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
   <remote fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
@@ -24,12 +25,12 @@
   <project revision="f02882e2aa9279ca7becca8d0cedbffe88b5a253" remote="python2" upstream="kirkstone"   name="meta-python2"            path="sources/meta-python2"/>
 
   <project revision="acd0ab4a09e72e9b07590a09ccf9fddfd69ca036" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project revision="2f9f8a96da4ad25522276401b23b7c4b9f6946fe" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
-  <project revision="502be8134cd55d4d3646f43f47fd2d6b233c71bf" remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" />
+  <project revision="f0c7b2fd047f65eb0af960a5e9c1fc603c30e411" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
+  <project revision="5135bc7a65919ee60c601708af2afbb047060304" remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" />
   
   <project revision="2d08d6bf376a1e06c53164fd6283b03ec2309da4" remote="clang" name="meta-clang" path="sources/meta-clang" />
   <project revision="c7651db9417d0694a05438967ca24b26ec69f9e1" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
-  <project revision="e60f59f3567b78286ea34337dbae468a5f18f1c6" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
+  <project revision="cca772a457a75b2661371932ff79c392da3118db" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
   <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="43c0642ed901ab816d350d04bd3b9526f46cde5d" upstream="kirkstone-5.15.71-2.2.0"/>
   <project revision="ae8a97f79364bed1abc297636f7933d0e35f22be" remote="QT5" upstream="kirkstone"   name="meta-qt5" path="sources/meta-qt5"/>
   <project revision="7a85c71f40c4bf445f041fa7aad70733c9cbc0ba" remote="sbabic" upstream="kirkstone"   name="meta-swupdate" path="sources/meta-swupdate"/>
@@ -40,6 +41,8 @@
   </project>
   <project revision="e86f4ac6ed3c18c1ed3dd76824fda4dd0e8c4f8d" remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
   <project revision="1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f" remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
+
+  <project revision="be6bc4443261636a43d749164e961dce69ef63b7" remote="alkit-gitlab" name="meta-alkit-hm-wice" path="sources/meta-alkit-hm-wice"/>
 </manifest>
 
 

@@ -1,158 +1,160 @@
-#!/bin/bash 
+#!/bin/bash
 
-set -e # exit on errors 
+set -e # exit on errors
 # set -x # print each line as is executes
 
 
 configure_git()
 {
-	git config --global user.email "support@hostmobility.com"
-	git config --global user.name "Host Mobility Support"
-	git config --global color.ui true
+  git config --global user.email "support@hostmobility.com"
+  git config --global user.name "Host Mobility Support"
+  git config --global color.ui true
 }
 
 check_environment()
 {
-    if [[ -z $MANIFEST_REPO || -z $MANIFEST_BRANCH || -z $MANIFEST_FILE ]]; then 
-		echo >&2 \
-		"MANIFEST_REPO, MANIFEST_BRANCH and MANIFEST_FILE \
-		 environment variables needed "
-		return 1
-	fi 
+    if [[ -z $MANIFEST_REPO || -z $MANIFEST_BRANCH || -z $MANIFEST_FILE ]]; then
+    echo >&2 \
+    "MANIFEST_REPO, MANIFEST_BRANCH and MANIFEST_FILE \
+     environment variables needed "
+    return 1
+  fi
 }
 
 # NOTE: repo sync will rebase its repos
 repo_init_sync()
 {
-	check_environment
-	# -q for quiet
-	echo repo init -u "$MANIFEST_REPO" -b "$MANIFEST_BRANCH" -m "$MANIFEST_FILE"
-	repo init -u "$MANIFEST_REPO" -b "$MANIFEST_BRANCH" -m "$MANIFEST_FILE"
-	repo sync #--force-sync
+  check_environment
+  # -q for quiet
+  echo repo init -u "$MANIFEST_REPO" -b "$MANIFEST_BRANCH" -m "$MANIFEST_FILE"
+  repo init -u "$MANIFEST_REPO" -b "$MANIFEST_BRANCH" -m "$MANIFEST_FILE"
+  repo sync #--force-sync
 }
 
 # Check if we can access our private/invited access only git repo 
 check_private_repo_access()
 {
-	if ! git ls-remote "$MANIFEST_REPO" ; then
+  if ! git ls-remote "$MANIFEST_REPO" ; then
 
-		echo "ERROR, cannot access $MANIFEST_REPO. Need ssh-agent with github key" > /dev/stderr
-		return 1
-	fi
+    echo "ERROR, cannot access $MANIFEST_REPO. Need ssh-agent with github key" > /dev/stderr
+    return 1
+  fi
 }
 
 # Helper to get a configured kernel(defconfig) and a devshell kernel
 devshell_kernel()
 {
-	bitbake -c configure virtual/kernel
-	bitbake -c devshell virtual/kernel
+  bitbake -c configure virtual/kernel
+  bitbake -c devshell virtual/kernel
 }
 export -f devshell_kernel
 
 # Initialize build environment for bitbake command and more. export SKIP_SYNC=1 to skip this step
 init_build()
 {
-	configure_git
-	# If poky folder does not exist, get source repos using Google Repo
-	if [[ -n $DO_SYNC ]]; then
-		repo_init_sync
-	else
-		echo "Not syncing. Use -s argument to do repo sync"
-	fi
+  configure_git
+  # If poky folder does not exist, get source repos using Google Repo
+  if [[ -n $DO_SYNC ]]; then
+    repo_init_sync
+  else
+    echo "Not syncing. Use -s argument to do repo sync"
+  fi
 
-	if ! repo --show-toplevel; then
-		echo "No .repo folder. Repo not initialized in or above $PWD. Use -s argument to sync"
-		exit 1
-	fi
+  if ! repo --show-toplevel; then
+    echo "No .repo folder. Repo not initialized in or above $PWD. Use -s argument to sync"
+    exit 1
+  fi
 
-	POKYFOLDER="sources/poky"
-	if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
-		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx 
-	else
-		export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic 
-	fi
-	source $POKYFOLDER/oe-init-build-env "$1"
-	# Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
-	if [[ -d $DL_DIR ]]; then 
-		grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
-	fi
+  POKYFOLDER="sources/poky"
+  if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
+    export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/hmx
+                [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/hmx
+  else
+    export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/templates/generic
+                [[ -d "$TEMPLATECONF" ]] || export TEMPLATECONF=${PWD}/sources/meta-mobility-poky-distro/conf/generic
+  fi
+  source $POKYFOLDER/oe-init-build-env "$1"
+  # Set Downloads folder in conf/local.conf if $DL_DIR is a folder and not yet set
+  if [[ -d $DL_DIR ]]; then
+    grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
+  fi
 
-	# Pass information about versions to bitbake 
-	export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
-	PLATFORM_VERSION="$(git -C ../.repo/manifests rev-parse --short HEAD)"
-	export PLATFORM_VERSION
-	PLATFORM_VERSION_DETAILS="$(get_platform_details)"
-	export PLATFORM_VERSION_DETAILS
+  # Pass information about versions to bitbake
+  export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
+  PLATFORM_VERSION="$(git -C ../.repo/manifests rev-parse --short HEAD)"
+  export PLATFORM_VERSION
+  PLATFORM_VERSION_DETAILS="$(get_platform_details)"
+  export PLATFORM_VERSION_DETAILS
 }
 export -f init_build
 
 get_platform_details()
 (
-	repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
+  repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
 )
 
 deploy_mx4()
 {
-	if [[ -z $MUBUILDDIR ]]; then echo "Yocto build needs to be initialized with init_build function first" >&2 ; exit 1; fi
-	#rm -rf ../mx4-deploy/
-	cd $(realpath "$BUILDDIR/../mx4-deploy")
-	echo $MACHINE is MACHINE
-	echo $BUILDDIR is BUILDDIR
-	ls $DEPLOY_DIR
-	rm -rf deploy-*
-	echo rm returned $?
-	# TODO this cannot find kernel, needs investigation
-	./make_system.sh -d $DEPLOY_DIR/tegra30-mx4-t30.dtb -t `echo $MACHINE | sed -e "s/^mx4-//"` -r $DEPLOY_DIR/console-hostmobility-image-$MACHINE.ext3 -k $DEPLOY_DIR/uImage -e
+  if [[ -z $MUBUILDDIR ]]; then echo "Yocto build needs to be initialized with init_build function first" >&2 ; exit 1; fi
+  #rm -rf ../mx4-deploy/
+  cd $(realpath "$BUILDDIR/../mx4-deploy")
+  echo $MACHINE is MACHINE
+  echo $BUILDDIR is BUILDDIR
+  ls $DEPLOY_DIR
+  rm -rf deploy-*
+  echo rm returned $?
+  # TODO this cannot find kernel, needs investigation
+  ./make_system.sh -d $DEPLOY_DIR/tegra30-mx4-t30.dtb -t `echo $MACHINE | sed -e "s/^mx4-//"` -r $DEPLOY_DIR/console-hostmobility-image-$MACHINE.ext3 -k $DEPLOY_DIR/uImage -e
 
 }
 
 
 usage()
 {
-	USED_ENVIRONMENT="MACHINE DISTRO MANIFEST_BRANCH MANIFEST_FILE DL_DIR BUILDDIR BUILD_TAG SKIP_SYNC SKIP_INIT_BUILD"
+  USED_ENVIRONMENT="MACHINE DISTRO MANIFEST_BRANCH MANIFEST_FILE DL_DIR BUILDDIR BUILD_TAG SKIP_SYNC SKIP_INIT_BUILD"
 
 cat <<-'ExamplesHere'
-	SYNOPSIS
+  SYNOPSIS
 
-	bid [OPTION] [build command with options] 
+  bid [OPTION] [build command with options]
 
-	OPTIONS
-		a) export MANIFEST_BRANCH=$OPTARG ;;
-		b) MYBUILDDIR=$OPTARG ;;
-		d) export DISTRO=$OPTARG ;;
-		f) export MANIFEST_FILE=$OPTARG ;;
-		m) export MACHINE=$OPTARG ;;
-		n) SKIP_INIT_BUILD=1 ;;
-		r) export MANIFEST_REPO=$OPTARG ;;
-		t) export BUILD_TAG=$OPTARG ;;
-		s) DO_SYNC=1 ;;
-		h|*) usage ;;
+  OPTIONS
+    a) export MANIFEST_BRANCH=$OPTARG ;;
+    b) MYBUILDDIR=$OPTARG ;;
+    d) export DISTRO=$OPTARG ;;
+    f) export MANIFEST_FILE=$OPTARG ;;
+    m) export MACHINE=$OPTARG ;;
+    n) SKIP_INIT_BUILD=1 ;;
+    r) export MANIFEST_REPO=$OPTARG ;;
+    t) export BUILD_TAG=$OPTARG ;;
+    s) DO_SYNC=1 ;;
+    h|*) usage ;;
 
-	EXAMPLES
+  EXAMPLES
 
-	bid 'bitbake -c clean console-hostmobility-image'
-	bid 'bitbake -c clean imx-boot'
-	bid 'bitbake -c clean virtual/bootloader'
-	bid 'bitbake -c clean virtual/kernel'
-	bid 'bitbake -c compile imx-boot'
-	bid 'bitbake -c configure virtual/bootloader'
-	bid 'bitbake -c configure virtual/kernel'
-	bid 'bitbake -c devshell virtual/bootloader'
-	bid 'bitbake -c populate_sdk console-hostmobility-image'
+  bid 'bitbake -c clean console-hostmobility-image'
+  bid 'bitbake -c clean imx-boot'
+  bid 'bitbake -c clean virtual/bootloader'
+  bid 'bitbake -c clean virtual/kernel'
+  bid 'bitbake -c compile imx-boot'
+  bid 'bitbake -c configure virtual/bootloader'
+  bid 'bitbake -c configure virtual/kernel'
+  bid 'bitbake -c devshell virtual/bootloader'
+  bid 'bitbake -c populate_sdk console-hostmobility-image'
 
-	bid 'bitbake console-hostmobility-image'
-	bid 'bitbake core-image-minimal'
+  bid 'bitbake console-hostmobility-image'
+  bid 'bitbake core-image-minimal'
 
-	bid 'bitbake curl'
-	bid 'bitbake imx-boo'
-	bid 'bitbake virtual/bootloader'
-	bid 'devshell_kernel'
+  bid 'bitbake curl'
+  bid 'bitbake imx-boo'
+  bid 'bitbake virtual/bootloader'
+  bid 'devshell_kernel'
 
 ExamplesHere
 for v in $USED_ENVIRONMENT; do
-	echo "$v=${!v}"
+  echo "$v=${!v}"
 done
-	exit 1
+  exit 1
 
 
 }
@@ -161,18 +163,18 @@ export -f get_platform_details
 
 # Parse arguments
 while getopts 'a:b:d:f:hm:nr:t:s' option; do
-	case $option in 
-		a) export MANIFEST_BRANCH=$OPTARG ;;
-		b) MYBUILDDIR=$OPTARG ;;
-		d) export DISTRO=$OPTARG ;;
-		f) export MANIFEST_FILE=$OPTARG ;;
-		m) export MACHINE=$OPTARG ;;
-		n) SKIP_INIT_BUILD=1 ;;
-		r) export MANIFEST_REPO=$OPTARG ;;
-		t) export BUILD_TAG=$OPTARG ;;
-		s) DO_SYNC=1 ;;
-		h|*) usage ;;
-	esac
+  case $option in 
+    a) export MANIFEST_BRANCH=$OPTARG ;;
+    b) MYBUILDDIR=$OPTARG ;;
+    d) export DISTRO=$OPTARG ;;
+    f) export MANIFEST_FILE=$OPTARG ;;
+    m) export MACHINE=$OPTARG ;;
+    n) SKIP_INIT_BUILD=1 ;;
+    r) export MANIFEST_REPO=$OPTARG ;;
+    t) export BUILD_TAG=$OPTARG ;;
+    s) DO_SYNC=1 ;;
+    h|*) usage ;;
+  esac
 done
 shift $((OPTIND-1))
 
@@ -183,20 +185,20 @@ shift $((OPTIND-1))
 : "${MACHINE:="imx8mp-var-dart-hmx1"}"
 
 if [[ $MACHINE == imx8mp-var-dart-hmx1 ]]; then
-	: "${MANIFEST_BRANCH:="master"}"
-	: "${MANIFEST_FILE:="kirkstone.xml"}" # System flavor
-	: "${DISTRO:=fslc-xwayland}"
+  : "${MANIFEST_BRANCH:="master"}"
+  : "${MANIFEST_FILE:="kirkstone.xml"}" # System flavor
+  : "${DISTRO:=fslc-xwayland}"
 elif [[ $MACHINE == mx5-pt ]]; then
-	: "${MANIFEST_BRANCH:="master"}"
-	: "${MANIFEST_FILE:="kirkstone.xml"}" # System flavor
-	: "${DISTRO:=fslc-wayland}"
+  : "${MANIFEST_BRANCH:="master"}"
+  : "${MANIFEST_FILE:="kirkstone.xml"}" # System flavor
+  : "${DISTRO:=fslc-wayland}"
 elif [[ $MACHINE == mx4-t30 ]]; then
-	: "${MANIFEST_BRANCH:="master"}"
-	: "${MANIFEST_FILE:="kirkstone.xml"}" # System flavor
-	: "${DISTRO:="poky"}"
+  : "${MANIFEST_BRANCH:="master"}"
+  : "${MANIFEST_FILE:="kirkstone.xml"}" # System flavor
+  : "${DISTRO:="poky"}"
 fi
 
-# Setup bitbake, leaves us in build folder 
+# Setup bitbake, leaves us in build folder
 if [[ -z $SKIP_INIT_BUILD ]]; then init_build "$MYBUILDDIR"; fi
 
 # Set default build tag to build folder and current time
