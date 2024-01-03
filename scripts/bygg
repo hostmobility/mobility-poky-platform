@@ -267,12 +267,14 @@ EOF
       hostmobility/buildplatform-mx4:2.0 \
       bash ./build_mx4-v2.sh
 
-  # Copy created e.g. *_hmupdate.img back to Yocto deploy dir to keep them.
+  # Copy created e.g. release tar.gz that include *_hmupdate.img back to Yocto deploy dir to keep them.
   hmupdate_archive=build/tmp/deploy/images/"${MACHINE}/hmupdate-${image}"
+  [[ -d "$hmupdate_archive" ]]
+    rm -r "$hmupdate_archive"
+
   [[ -d "$hmupdate_archive" ]] || mkdir "$hmupdate_archive" 
   cp \
-    mx4-deploy/deploy-mx4-"${short_machine}/${BUILD_TAG}-mx4-${short_machine}"/* \
-    "${hmupdate_archive}/"
+    mx4-deploy/deploy-mx4-${short_machine}/release/*.tar.gz "${hmupdate_archive}/"
 }
 
 sync_packages()
