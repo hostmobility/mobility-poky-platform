@@ -69,7 +69,7 @@ parse_options()
 # Find the templates folder based on requested wanted_templateconf
 # Arguments: path to directory with local.conf.sample or
 # meta- layer path with conf.
-# Returns: 0 on sucess, 1 on failure, found folder on stdout. 
+# Returns: 0 on sucess, 1 on failure, found folder on stdout.
 # Handles move to templates which Mickledore requires.
 find_templateconf()
 {
@@ -96,9 +96,9 @@ find_templateconf()
     )
   fi
 
-  for candidate in "${CANDIDATES[@]}"; do 
+  for candidate in "${CANDIDATES[@]}"; do
       sample="${candidate}/local.conf.sample"
-		  if [[ -f "$sample" ]]; then
+      if [[ -f "$sample" ]]; then
         >&2 echo "🍏 TEMPLATECONF IS $candidate"
         realpath "$candidate"
         return 0
@@ -106,9 +106,9 @@ find_templateconf()
 
       tried_files+=$(printf '\n%s' "$sample")
   done
-	
+
   >&2 echo "🔴 No sample files found. PWD=$PWD. Tried: $tried_files"
-	return 1
+  return 1
 }
 # Determine folder to build in.
 # parameters: User requested_build_folder(can be empty)
@@ -214,7 +214,7 @@ build_container()
 DockerFileHere
 }
 
-get_short_machine_name() 
+get_short_machine_name()
 {
   [[ "$MACHINE" =~ ^mx4- ]] || { >&2 echo "MACHINE=$MACHINE does not start with mx4- as expected" ; return 1 ; }
   [[ "$MACHINE" == "mx4-c61-rio" ]] && echo c61 || echo "${MACHINE:4}"
@@ -241,9 +241,9 @@ sudo rm -rf deploy-*
 
 DEPLOY_DIR=../build/tmp/deploy/images/$MACHINE
 
-if [[ "$SHORT_MACHINE" == "c61" ]]; then 
+if [[ "$SHORT_MACHINE" == "c61" ]]; then
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.tar.xz
-else 
+else
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.ext3
 fi
 
@@ -272,7 +272,7 @@ EOF
   [[ -d "$hmupdate_archive" ]]
     rm -r "$hmupdate_archive"
 
-  [[ -d "$hmupdate_archive" ]] || mkdir "$hmupdate_archive" 
+  [[ -d "$hmupdate_archive" ]] || mkdir "$hmupdate_archive"
   cp \
     mx4-deploy/deploy-mx4-${short_machine}/release/*.tar.gz "${hmupdate_archive}/"
 }
@@ -292,7 +292,7 @@ sync_packages()
   else
     mkdir -p "${destination_parts[0]}/builds"
   fi
-    
+
   rsync -avr build*/tmp/deploy/ipk/ "$package_server"/
   rsync -avr build*/tmp/deploy/images/ "$package_server"/builds/"${BUILD_TAG}"
 }
@@ -320,15 +320,15 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   docker_args+=(--workdir="${PLATFORM_FOLDER}")
   docker_args+=("$CONTAINER_NAME")
   docker_args+=("$SCRIPT_NAME" "$@")
-  docker "${docker_args[@]}" || { echo "🔴 docker ${docker_args[*]} failed" ; exit 1 ; } 
+  docker "${docker_args[@]}" || { echo "🔴 docker ${docker_args[*]} failed" ; exit 1 ; }
   echo "🟢 $CONTAINER_NAME DONE OK"
 
   for MACHINE in "${machines[@]}"; do
-    for image in "${images[@]}"; do 
+    for image in "${images[@]}"; do
       [[ $MACHINE =~ ^mx4- ]] && create_hm_update_image
     done
   done
-   
+
   [[ -n "$package_server" ]] && sync_packages "$package_server"
 
   exit $?
@@ -346,14 +346,14 @@ mkdir -p "$YOCTO_FOLDER"
 
 if [[ ${#machines[@]} == 0 ]]; then
   >&2 echo "🔴 ERROR No machine(s) to build for. Use one or more of:"
-  for conf_file in "$YOCTO_FOLDER"/*/meta-hostmobility-bsp/conf/machine/*.conf ; do 
-    >&2 echo "--machine $(basename "$conf_file" .conf)" 
+  for conf_file in "$YOCTO_FOLDER"/*/meta-hostmobility-bsp/conf/machine/*.conf ; do
+    >&2 echo "--machine $(basename "$conf_file" .conf)"
   done
   usage
 fi
 
-# Add receipe names from stdin to recipes_to_build. 
-# example: echo binutils | scripts/bygg or 
+# Add receipe names from stdin to recipes_to_build.
+# example: echo binutils | scripts/bygg or
 # cat wanted_recipes.txt | scripts/bygg
 read -t 0 && while read -r recipe; do recipes+=("$recipe"); done
 
@@ -384,7 +384,7 @@ for MACHINE in "${machines[@]}"; do
   [[ -n "$package_server" ]] && bitbake package-index
 
   # Create t30_hmupdate.img, vf_hmupdate.img etc.
-  for image in "${images[@]}"; do 
+  for image in "${images[@]}"; do
     [[ -n "$populate_sdk" ]] && bitbake -c populate_sdk "$image"
   done
 
