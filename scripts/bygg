@@ -243,11 +243,11 @@ DEPLOY_DIR=../build/tmp/deploy/images/$MACHINE
 
 if [[ "$SHORT_MACHINE" == "c61" ]]; then
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.tar.xz
+  dtb=$(find $DEPLOY_DIR/ -name "vf61*-${MACHINE}.dtb")
 else
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.ext3
+  dtb=$(find $DEPLOY_DIR/ -name "tegra*-${MACHINE}.dtb")
 fi
-
-dtb="$DEPLOY_DIR/tegra30-mx4-t30.dtb"
 
 ./make_system.sh \
   -t "$SHORT_MACHINE" \
