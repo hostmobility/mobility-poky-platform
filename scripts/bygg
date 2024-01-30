@@ -188,7 +188,7 @@ sync_manifest()
   # Find out branch of platform repo
   MANIFEST_COMMIT_HASH="$(git -C "$PLATFORM_FOLDER" rev-parse HEAD)"
   # Synchronize bitbake layer repos the manifest in this repo
-  repo init file://"$PLATFORM_FOLDER" -b "$MANIFEST_COMMIT_HASH" -m "$MANIFEST_FILE"
+  repo init -u file://"$PLATFORM_FOLDER" -b "$MANIFEST_COMMIT_HASH" -m "$MANIFEST_FILE"
   echo "🌲 NOTE: Build is based on manifest file $MANIFEST_FILE revision $MANIFEST_COMMIT_HASH"
   repo sync
 }
