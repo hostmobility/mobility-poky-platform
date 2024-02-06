@@ -267,14 +267,20 @@ EOF
       hostmobility/buildplatform-mx4:2.0 \
       bash ./build_mx4-v2.sh
 
+  docker_exit_code=$?
+
   # Copy created e.g. release tar.gz that include *_hmupdate.img back to Yocto deploy dir to keep them.
   hmupdate_archive=build/tmp/deploy/images/"${MACHINE}/hmupdate-${image}"
   [[ -d "$hmupdate_archive" ]]
-    rm -r "$hmupdate_archive"
+    rm -r "$hmupdate_archive" \
+    || return 1
 
   [[ -d "$hmupdate_archive" ]] || mkdir "$hmupdate_archive"
   cp \
-    mx4-deploy/deploy-mx4-${short_machine}/release/*.tar.gz "${hmupdate_archive}/"
+    mx4-deploy/deploy-mx4-${short_machine}/release/*.tar.gz "${hmupdate_archive}/" \
+    || return 1
+
+  return $docker_exit_code
 }
 
 sync_packages()
@@ -293,8 +299,9 @@ sync_packages()
     mkdir -p "${destination_parts[0]}/builds"
   fi
 
-  rsync -avr build*/tmp/deploy/ipk/ "$package_server"/
-  rsync -avr build*/tmp/deploy/images/ "$package_server"/builds/"${BUILD_TAG}"
+  rsync -avr build*/tmp/deploy/ipk/ "$package_server"/ || return 1
+  rsync -avr build*/tmp/deploy/images/ "$package_server"/builds/"${BUILD_TAG}" || return 1
+  return 0
 }
 
 # ----------------  SCRIPT STARTS HERE ----------------------
@@ -325,13 +332,27 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
 
   for MACHINE in "${machines[@]}"; do
     for image in "${images[@]}"; do
-      [[ $MACHINE =~ ^mx4- ]] && create_hm_update_image
+      if [[ $MACHINE =~ ^mx4- ]]; then
+        create_hm_update_image
+        if [ $? -eq 1 ]; then
+            echo "🔴 create_hm_update_image for machine ${MACHINE} failed"
+            exit 1
+        fi
+fi
+
     done
   done
 
-  [[ -n "$package_server" ]] && sync_packages "$package_server"
+  if [[ -n "$package_server" ]]; then
+    sync_packages "$package_server"
+    if [ $? -ne 0 ]; then
+        echo "🔴 sync_packages for package_server (${package_server}) failed"
+        exit 1
+    fi
+fi
 
-  exit $?
+
+  exit 0
 fi
 
 # ----------------  Running inside container ----------------
