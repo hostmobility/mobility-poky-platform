@@ -343,7 +343,14 @@ fi
     done
   done
 
-  [[ -n "$package_server" ]] && sync_packages "$package_server" || { echo "🔴 sync_packages for package_server (${package_server}) failed" ; exit 1 ; }
+  if [[ -n "$package_server" ]]; then
+    sync_packages "$package_server"
+    if [ $? -ne 0 ]; then
+        echo "🔴 sync_packages for package_server (${package_server}) failed"
+        exit 1
+    fi
+fi
+
 
   exit 0
 fi
