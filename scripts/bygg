@@ -332,7 +332,14 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
 
   for MACHINE in "${machines[@]}"; do
     for image in "${images[@]}"; do
-      [[ $MACHINE =~ ^mx4- ]] && create_hm_update_image || { echo "🔴 create_hm_update_image for machine ${MACHINE} failed" ; exit 1 ; }
+      if [[ $MACHINE =~ ^mx4- ]]; then
+        create_hm_update_image
+        if [ $? -eq 1 ]; then
+            echo "🔴 create_hm_update_image for machine ${MACHINE} failed"
+            exit 1
+        fi
+fi
+
     done
   done
 
