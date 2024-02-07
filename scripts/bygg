@@ -299,8 +299,8 @@ sync_packages()
     mkdir -p "${destination_parts[0]}/builds"
   fi
 
-  rsync -avr build*/tmp/deploy/ipk/ "$package_server"/ || return 1
-  rsync -avr build*/tmp/deploy/images/ "$package_server"/builds/"${BUILD_TAG}" || return 1
+  rsync -avr ${2}/build*/tmp/deploy/ipk/ "$package_server"/ || return 1
+  rsync -avr ${2}/build*/tmp/deploy/images/ "$package_server"/builds/"${BUILD_TAG}" || return 1
   return 0
 }
 
@@ -344,7 +344,7 @@ fi
   done
 
   if [[ -n "$package_server" ]]; then
-    sync_packages "$package_server"
+    sync_packages "$package_server" $YOCTO_FOLDER
     if [ $? -ne 0 ]; then
         echo "🔴 sync_packages for package_server (${package_server}) failed"
         exit 1
