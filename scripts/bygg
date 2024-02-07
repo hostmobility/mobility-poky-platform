@@ -12,16 +12,49 @@ SCRIPT_FOLDER=$(dirname "$SCRIPTNAME")
 PLATFORM_FOLDER=$(realpath "$(dirname "$SCRIPT_FOLDER")")
 
 # Parse options or show usage which exits app
-usage()
-{
-  echo "$0 - build bitbake recipes/images using docker"
-  echo "Usage: $(basename "$0" ) [options] build-command-to-run"
-  echo "options(: means required argument, :: means optional argument)"
-  for option in $(echo "$LONGOPTIONS" | tr , \\n); do
-    echo "--$option"
-  done
+usage() {
+
+  cat << EOF
+$0 - build bitbake recipes/images using docker
+Usage: $(basename "$0") [options] -f MANIFEST-FILE -m MACHINE (-r RECIPES | -i IMAGES)
+
+Required arguments:
+  -f, --manifest-file     Manifest file to use, e.g. kirkstone.xml. See list of manifest files in this repo.
+  -m, --machine           Specify the target machine for the build. Multible machines are supported.
+                          Should be unique and will mark the build and image names with this tag.
+                          On the deployed system, it can be read out from /etc/platform-build-tag.
+  -i, --image             Specify the BSP image to use for the build.
+                          Can be combined with recipe option or skipped if 'recipe' option is used.
+                          Multible images are supported (--image image1 --image image2).
+  -r, --recipe            Build one or more bb recipes (--recipe recipe1 --recipe recipe2). Can be skipped if image is used.
+
+Options:
+  -b, --build-folder      Specify the directory for the build output. Defaults to build.
+  -c, --delete-conf       Delete existing configuration files in the build directory. Recommended if you build multiple different machines.
+  -d, --distro            Specify the target poky distro, e.g. poky or fslc-wayland. Defaults to poky.
+  -g, --skip-docker-pull  Skip update of docker container.
+  -h, --help              Display this help message and exit.
+  -n, --skip-init-build   Setup bitbake. Leaves us in build folder.
+  -o, --populate-sdk      Populate the SDK after the build.
+  -p, --package-server    Specify the packages server URL or a local directory. Will deploy directory path /packages/poky/manifest-in-use/ with ipk packages.
+  -s, --repo-sync         Synchronize repositories before starting the build. Mainfest file repos will be updated to target git hash.
+  -t, --build-tag         Specify a tag for the build (recommended).
+  -u, --templateconf      Expect path to directory with local.conf.sample or  meta-layer path with conf. Example are
+                          - sources/meta-mobility-poky-distro/conf/templates/${machine_folder} (Mickledore and newer)
+                          - sources/meta-mobility-poky-distro/conf/${machine_folder}
+                          - sources/meta-mobility-poky-distro/conf/generic/local.conf.sample
+
+Example usage:
+  ./$(basename "$0")  --delete-conf \
+  --manifest-file kirkstone.xml \
+  --machine imx8mp-var-dart-hmx1 \
+  --build-tag 42 \
+  --image console-hostmobility-image \
+
+EOF
   exit 1
 }
+
 
 parse_options()
 {
