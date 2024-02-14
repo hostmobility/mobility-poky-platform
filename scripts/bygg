@@ -301,8 +301,7 @@ sync_packages()
     mkdir -p "${destination_parts[0]}/packages/poky/${2}"
   fi
 
-  # For ipk hard code poky for now, this script is located for poky distro.
-  rsync -avr ${2}/build*/tmp/deploy/ipk/ "$package_server"/packages/poky/$(basename "$MANIFEST_FILE" .xml) || return 1
+  rsync -avr ${2}/build*/tmp/deploy/ipk/ "$package_server"/packages/${DISTRO}/$(basename "$MANIFEST_FILE" .xml) || return 1
   
   rsync -avr ${2}/build*/tmp/deploy/images/ "$package_server"/builds/"${BUILD_TAG}" || return 1
   return 0
