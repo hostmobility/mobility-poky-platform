@@ -318,25 +318,34 @@ EOF
 
 sync_packages()
 {
+  local -r release_codename=$(basename "$MANIFEST_FILE" .xml)
+  # Example: packages/poky/kirkstone
+  local packages_path="packages/$DISTRO/$release_codename"
+
   if [[ -z $1 ]]; then
-    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages destination needed as first argument"
+    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages yocto folder needed as first argument"
+    return 1
+  fi
+
+  if [[ -z $2 ]]; then
+    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages destination needed as second argument"
     return 1
   fi
 
   # Create destination directory. Interpret part before an eventual ":" as
   # a server name so run mkdir using ssh in that case.
-  IFS=":" read  -ra destination_parts <<< "$1"
+  IFS=":" read  -ra destination_parts <<< "$2"
   if [[ -n ${destination_parts[1]} ]]; then
     ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/builds"
-    ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/packages/poky/${2}"
+    ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/$packages_path"
   else
     mkdir -p "${destination_parts[0]}/builds"
-    mkdir -p "${destination_parts[0]}/packages/poky/${2}"
+    mkdir -p "${destination_parts[0]}/$packages_path"
   fi
 
-  rsync -avr ${2}/build*/tmp/deploy/ipk/ "$package_server"/packages/${DISTRO}/$(basename "$MANIFEST_FILE" .xml) || return 1
-  
-  rsync -avr ${2}/build*/tmp/deploy/images/ "$package_server"/builds/"${BUILD_TAG}" || return 1
+  rsync -avr "${1}/build*/tmp/deploy/ipk/" "${2}/$packages_path" || return 1
+  rsync -avr "${1}/build*/tmp/deploy/images/" "${2}/builds/${BUILD_TAG}" || return 1
+
   return 0
 }
 
@@ -380,7 +389,7 @@ fi
   done
 
   if [[ -n "$package_server" ]]; then
-    sync_packages "$package_server" $YOCTO_FOLDER
+    sync_packages "$YOCTO_FOLDER" "$package_server"
     if [ $? -ne 0 ]; then
         echo "🔴 sync_packages for package_server (${package_server}) failed"
         exit 1
