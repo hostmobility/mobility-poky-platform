@@ -36,13 +36,16 @@ Options:
   -h, --help              Display this help message and exit.
   -n, --skip-init-build   Setup bitbake. Leaves us in build folder.
   -o, --populate-sdk      Populate the SDK after the build.
-  -p, --package-server    Specify the packages server URL or a local directory. Will deploy directory path /packages/poky/manifest-in-use/ with ipk packages.
+  -p, --deploy-packages   Deploy packages to the specified package server or a local directory, e.g. user@server:/srv/packages or /tmp/packages.
+                          This will deploy ipk packages below distro/(release_codename|manifest file).
   -s, --repo-sync         Synchronize repositories before starting the build. Mainfest file repos will be updated to target git hash.
   -t, --build-tag         Specify a tag for the build (recommended).
   -u, --templateconf      Expect path to directory with local.conf.sample or  meta-layer path with conf. Example are
                           - sources/meta-mobility-poky-distro/conf/templates/${machine_folder} (Mickledore and newer)
                           - sources/meta-mobility-poky-distro/conf/${machine_folder}
                           - sources/meta-mobility-poky-distro/conf/generic/local.conf.sample
+  -y, --deploy-images     Deploy images to the specified package server or a local directory, e.g. user@server:/srv/builds or /tmp/builds.
+                          This will deploy BSP images directly below the specified path.
 
 Example usage:
   ./$(basename "$0")  --delete-conf \
@@ -58,8 +61,8 @@ EOF
 
 parse_options()
 {
-  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,package-server:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n'
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n,y'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
 
@@ -76,11 +79,12 @@ parse_options()
       '-m'|'--machine') machines+=("$2"); shift 2;;
       '-n'|'--skip-init-build') SKIP_INIT_BUILD=1; shift;;
       '-o'|'--populate-sdk') populate_sdk="$2"; shift;;
-      '-p'|'--package-server') package_server="$2"; shift 2;;
+      '-p'|'--deploy-packages') package_server="$2"; shift 2;;
       '-r'|'--recipe') recipes+=("$2"); shift 2;;
       '-s'|'--repo-sync') DO_SYNC=1; shift;;
       '-t'|'--build-tag') BUILD_TAG="$2"; shift 2;;
       '-u'|'--templateconf') wanted_templateconf="$2"; shift 2;;
+      '-y'|'--deploy-images') image_server="$2"; shift 2;;
       '*') >&2 echo "BUG, UNHANDLED ARGUMENT:$1 $2"; exit 2;;
     esac
   done
@@ -319,8 +323,7 @@ EOF
 sync_packages()
 {
   local -r release_codename=$(basename "$MANIFEST_FILE" .xml)
-  # Example: packages/poky/kirkstone
-  local packages_path="packages/$DISTRO/$release_codename"
+  local packages_path="$DISTRO/$release_codename" # e.g. poky/kirkstone
 
   if [[ -z $1 ]]; then
     >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages yocto folder needed as first argument"
@@ -336,18 +339,42 @@ sync_packages()
   # a server name so run mkdir using ssh in that case.
   IFS=":" read  -ra destination_parts <<< "$2"
   if [[ -n ${destination_parts[1]} ]]; then
-    ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/builds"
     ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/$packages_path"
   else
-    mkdir -p "${destination_parts[0]}/builds"
     mkdir -p "${destination_parts[0]}/$packages_path"
   fi
 
-  rsync -avr "${1}/build*/tmp/deploy/ipk/" "${2}/$packages_path" || return 1
-  rsync -avr "${1}/build*/tmp/deploy/images/" "${2}/builds/${BUILD_TAG}" || return 1
+  rsync -avr "${1}"/build*/tmp/deploy/ipk/ "${2}/$packages_path" || return 1
 
   return 0
 }
+
+sync_images()
+{
+  if [[ -z $1 ]]; then
+    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages yocto folder needed as first argument"
+    return 1
+  fi
+
+  if [[ -z $2 ]]; then
+    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync image destination needed as second argument"
+    return 1
+  fi
+
+  # Create destination directory. Interpret part before an eventual ":" as
+  # a server name so run mkdir using ssh in that case.
+  IFS=":" read  -ra destination_parts <<< "$2"
+  if [[ -n ${destination_parts[1]} ]]; then
+    ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/"
+  else
+    mkdir -p "${destination_parts[0]}/"
+  fi
+
+  rsync -avr "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+
+  return 0
+}
+
 
 # ----------------  SCRIPT STARTS HERE ----------------------
 
@@ -366,6 +393,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   [[ -t 0 ]] && docker_args+=("-t")
   [[ -n $DL_DIR ]] && docker_args+=(-e DL_DIR="$DL_DIR" -v "${DL_DIR}:${DL_DIR}")
   [[ -d "$package_server" ]] && docker_args+=(-v "${package_server}:${package_server}")
+  [[ -d "$image_server" ]] && docker_args+=(-v "${image_server}:${image_server}")
   docker_args+=(-e "SSH_AUTH_SOCK=/ssh.socket")
   docker_args+=(-v "$SSH_AUTH_SOCK:/ssh.socket")
   docker_args+=(-v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}")
@@ -383,18 +411,27 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
             echo "🔴 create_hm_update_image for machine ${MACHINE} failed"
             exit 1
         fi
-fi
-
+      fi
     done
   done
 
-  if [[ -n "$package_server" ]]; then
+  if [[ -n "$package_server" ]]; then 
     sync_packages "$YOCTO_FOLDER" "$package_server"
+
     if [ $? -ne 0 ]; then
-        echo "🔴 sync_packages for package_server (${package_server}) failed"
-        exit 1
+      echo "🔴 sync_packages for deploy-packages (${package_server}) failed"
+      exit 1
     fi
-fi
+  fi
+
+  if [[ -n "$image_server" ]]; then 
+    sync_images "$YOCTO_FOLDER" "$image_server"
+
+    if [ $? -ne 0 ]; then
+      echo "🔴 sync_images for deploy-images (${image_server}) failed"
+      exit 1
+    fi
+  fi
 
 
   exit 0
