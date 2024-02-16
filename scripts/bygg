@@ -19,33 +19,36 @@ $0 - build bitbake recipes/images using docker
 Usage: $(basename "$0") [options] -f MANIFEST-FILE -m MACHINE (-r RECIPES | -i IMAGES)
 
 Required arguments:
-  -f, --manifest-file     Manifest file to use, e.g. kirkstone.xml. See list of manifest files in this repo.
-  -m, --machine           Specify the target machine for the build. Multible machines are supported.
-                          Should be unique and will mark the build and image names with this tag.
-                          On the deployed system, it can be read out from /etc/platform-build-tag.
-  -i, --image             Specify the BSP image to use for the build.
-                          Can be combined with recipe option or skipped if 'recipe' option is used.
-                          Multible images are supported (--image image1 --image image2).
-  -r, --recipe            Build one or more bb recipes (--recipe recipe1 --recipe recipe2). Can be skipped if image is used.
+  -f, --manifest-file FILE                 Manifest file to use, e.g. kirkstone.xml. See list of manifest files in this repo.
+  -m, --machine MACHINE                    Specify the target machine for the build. Multible machines are supported.
+                                           Should be unique and will mark the build and image names with this tag.
+                                           On the deployed system, it can be read out from /etc/platform-build-tag.
+  -i, --image IMAGE                        Specify the BSP image to use for the build.
+                                           Can be combined with recipe option or skipped if 'recipe' option is used.
+                                           Multible images are supported (--image image1 --image image2).
+  -r, --recipe RECIPE                      Build one or more bb recipes (--recipe recipe1 --recipe recipe2). Can be skipped if image is used.
 
 Options:
-  -b, --build-folder      Specify the directory for the build output. Defaults to build.
-  -c, --delete-conf       Delete existing configuration files in the build directory. Recommended if you build multiple different machines.
-  -d, --distro            Specify the target poky distro, e.g. poky or fslc-wayland. Defaults to poky.
-  -g, --skip-docker-pull  Skip update of docker container.
-  -h, --help              Display this help message and exit.
-  -n, --skip-init-build   Setup bitbake. Leaves us in build folder.
-  -o, --populate-sdk      Populate the SDK after the build.
-  -p, --deploy-packages   Deploy packages to the specified package server or a local directory, e.g. user@server:/srv/packages or /tmp/packages.
-                          This will deploy ipk packages below distro/(release_codename|manifest file).
-  -s, --repo-sync         Synchronize repositories before starting the build. Mainfest file repos will be updated to target git hash.
-  -t, --build-tag         Specify a tag for the build (recommended).
-  -u, --templateconf      Expect path to directory with local.conf.sample or  meta-layer path with conf. Example are
-                          - sources/meta-mobility-poky-distro/conf/templates/${machine_folder} (Mickledore and newer)
-                          - sources/meta-mobility-poky-distro/conf/${machine_folder}
-                          - sources/meta-mobility-poky-distro/conf/generic/local.conf.sample
-  -y, --deploy-images     Deploy images to the specified package server or a local directory, e.g. user@server:/srv/builds or /tmp/builds.
-                          This will deploy BSP images directly below the specified path.
+  -b, --build-folder PATH                  Specify the directory for the build output. Defaults to build.
+  -c, --delete-conf                        Delete existing configuration files in the build directory. Recommended if you build multiple different machines.
+  -d, --distro DISTRO                      Specify the target poky distro, e.g. poky or fslc-wayland. Defaults to poky.
+  -g, --skip-docker-pull                   Skip update of docker container.
+  -h, --help                               Display this help message and exit.
+  -n, --skip-init-build                    Setup bitbake. Leaves us in build folder.
+  -o, --populate-sdk                       Populate the SDK after the build.
+  -p, --deploy-packages DEST               Deploy packages to the specified remote or local directory, e.g. user@server:/srv/packages or /tmp/packages.
+                                           This will deploy ipk packages below distro/(release_codename|manifest file).
+  -s, --repo-sync                          Synchronize repositories before starting the build. Mainfest file repos will be updated to target git hash.
+  -t, --build-tag TAG                      Specify a tag for the build (recommended).
+  -u, --templateconf PATH                  Expect path to directory with local.conf.sample or meta-layer path with conf. Example are
+                                           - sources/meta-mobility-poky-distro/conf/templates/${machine_folder} (Mickledore and newer)
+                                           - sources/meta-mobility-poky-distro/conf/${machine_folder}
+                                           - sources/meta-mobility-poky-distro/conf/generic/local.conf.sample
+  -y, --deploy-images DEST                 Deploy images to the specified remote or local directory, e.g. user@server:/srv/builds or /tmp/builds.
+                                           This will deploy BSP images directly below the specified path.
+  -z, --deploy-image-includes PATTERN      If combined with deploy-images, this option copies only such files covered by a comma-separated list of include patterns,
+                                           e.g. 'uImage,zImage,*.scr,*.tar.gz,*.wic.gz' (single quotes required here). By default all the image-related
+                                           build files are copied (deployed).
 
 Example usage:
   ./$(basename "$0")  --delete-conf \
@@ -61,8 +64,8 @@ EOF
 
 parse_options()
 {
-  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n,y'
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n,y:,p:,z:'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
 
@@ -79,12 +82,13 @@ parse_options()
       '-m'|'--machine') machines+=("$2"); shift 2;;
       '-n'|'--skip-init-build') SKIP_INIT_BUILD=1; shift;;
       '-o'|'--populate-sdk') populate_sdk="$2"; shift;;
-      '-p'|'--deploy-packages') package_server="$2"; shift 2;;
+      '-p'|'--deploy-packages') deploy_directory="$2"; shift 2;;
       '-r'|'--recipe') recipes+=("$2"); shift 2;;
       '-s'|'--repo-sync') DO_SYNC=1; shift;;
       '-t'|'--build-tag') BUILD_TAG="$2"; shift 2;;
       '-u'|'--templateconf') wanted_templateconf="$2"; shift 2;;
       '-y'|'--deploy-images') image_server="$2"; shift 2;;
+      '-z'|'--deploy-image-includes') img_includes="$2"; shift 2;;
       '*') >&2 echo "BUG, UNHANDLED ARGUMENT:$1 $2"; exit 2;;
     esac
   done
@@ -370,7 +374,22 @@ sync_images()
     mkdir -p "${destination_parts[0]}/"
   fi
 
-  rsync -avr "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+  if [[ -z $3 ]]; then
+    rsync -avr "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+  else
+    pattern=${3#"'"}   # Remove leading single quote
+    pattern=${pattern%"'"}   # Remove trailing single quote
+
+    IFS="," read -r -a deploy_includes <<< "$pattern"
+
+    include_pattern=()
+    for inc in "${deploy_includes[@]}"; do
+      include_pattern+=(--include="$inc")
+    done
+
+    # shellcheck disable=SC2086
+    rsync -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+  fi
 
   return 0
 }
@@ -392,7 +411,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   docker_args=(run -i --rm=true -e "RUNNING_IN_DOCKER=1") 
   [[ -t 0 ]] && docker_args+=("-t")
   [[ -n $DL_DIR ]] && docker_args+=(-e DL_DIR="$DL_DIR" -v "${DL_DIR}:${DL_DIR}")
-  [[ -d "$package_server" ]] && docker_args+=(-v "${package_server}:${package_server}")
+  [[ -d "$deploy_directory" ]] && docker_args+=(-v "${deploy_directory}:${deploy_directory}")
   [[ -d "$image_server" ]] && docker_args+=(-v "${image_server}:${image_server}")
   docker_args+=(-e "SSH_AUTH_SOCK=/ssh.socket")
   docker_args+=(-v "$SSH_AUTH_SOCK:/ssh.socket")
@@ -415,17 +434,17 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
     done
   done
 
-  if [[ -n "$package_server" ]]; then 
-    sync_packages "$YOCTO_FOLDER" "$package_server"
+  if [[ -n "$deploy_directory" ]]; then
+    sync_packages "$YOCTO_FOLDER" "$deploy_directory"
 
     if [ $? -ne 0 ]; then
-      echo "🔴 sync_packages for deploy-packages (${package_server}) failed"
+      echo "🔴 sync_packages for deploy-packages (${deploy_directory}) failed"
       exit 1
     fi
   fi
 
   if [[ -n "$image_server" ]]; then 
-    sync_images "$YOCTO_FOLDER" "$image_server"
+    sync_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
 
     if [ $? -ne 0 ]; then
       echo "🔴 sync_images for deploy-images (${image_server}) failed"
@@ -484,7 +503,7 @@ for MACHINE in "${machines[@]}"; do
   [[ -n "${recipes[0]}" ]] && bitbake "${recipes[@]}"
 
   # Update package indices if we are syncing to server later.
-  [[ -n "$package_server" ]] && bitbake package-index
+  [[ -n "$deploy_directory" ]] && bitbake package-index
 
   # Create t30_hmupdate.img, vf_hmupdate.img etc.
   for image in "${images[@]}"; do
