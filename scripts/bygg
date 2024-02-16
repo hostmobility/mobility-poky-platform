@@ -44,11 +44,9 @@ Options:
                                            - sources/meta-mobility-poky-distro/conf/templates/${machine_folder} (Mickledore and newer)
                                            - sources/meta-mobility-poky-distro/conf/${machine_folder}
                                            - sources/meta-mobility-poky-distro/conf/generic/local.conf.sample
-  -y, --deploy-images DEST                 Deploy images to the specified remote or local directory, e.g. user@server:/srv/builds or /tmp/builds.
-                                           This will deploy BSP images directly below the specified path.
-  -z, --deploy-image-includes PATTERN      If combined with deploy-images, this option copies only such files covered by a comma-separated list of include patterns,
-                                           e.g. 'uImage,zImage,*.scr,*.tar.gz,*.wic.gz' (single quotes required here). By default all the image-related
-                                           build files are copied (deployed).
+  -y, --deploy-images DEST [ALLOW-FILES]   Deploy images to the specified remote or local directory, e.g. user@server:/srv/builds or /tmp/builds.
+                                           This will deploy BSP images directly below the specified path. Optionally, provide comma-separated file suffixes
+                                           that are allowed to be deployed, e.g. scr,tar.gz,wic.gz.
 
 Example usage:
   ./$(basename "$0")  --delete-conf \
@@ -64,8 +62,8 @@ EOF
 
 parse_options()
 {
-  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n,y:,p:,z:'
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n,y:,p:'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
 
@@ -87,8 +85,17 @@ parse_options()
       '-s'|'--repo-sync') DO_SYNC=1; shift;;
       '-t'|'--build-tag') BUILD_TAG="$2"; shift 2;;
       '-u'|'--templateconf') wanted_templateconf="$2"; shift 2;;
-      '-y'|'--deploy-images') image_server="$2"; shift 2;;
-      '-z'|'--deploy-image-includes') img_includes="$2"; shift 2;;
+      '-y'|'--deploy-images')
+        image_server="$2"
+        shift
+        if [[ -n "$3" ]]; then
+          allow_file_types="$3"
+          shift
+        else
+          allow_file_types=""
+          shift
+        fi
+        ;;
       '*') >&2 echo "BUG, UNHANDLED ARGUMENT:$1 $2"; exit 2;;
     esac
   done
@@ -396,19 +403,16 @@ sync_images()
   fi
 
   if [[ -z $3 ]]; then
-    rsync --min-size=1B -avrm "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+    rsync -avr "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
   else
-    pattern=${3#"'"}   # Remove leading single quote
-    pattern=${pattern%"'"}   # Remove trailing single quote
+    IFS=',' read -r -a suffixes <<< "$3"
 
-    IFS="," read -r -a deploy_includes <<< "$pattern"
-
-    include_pattern=()
-    for inc in "${deploy_includes[@]}"; do
-      include_pattern+=(--include="$inc")
+    include_pattern=""
+    for suffix in "${suffixes[@]}"; do
+      include_pattern+="--include='*.$suffix' "
     done
 
-    rsync --min-size=1B -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+    rsync -avr "$include_pattern" "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
   fi
 
   return 0
@@ -464,7 +468,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   fi
 
   if [[ -n "$image_server" ]]; then 
-    sync_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
+    sync_images "$YOCTO_FOLDER" "$image_server" "$allow_file_types"
 
     if [ $? -ne 0 ]; then
       echo "🔴 sync_images for deploy-images (${image_server}) failed"
