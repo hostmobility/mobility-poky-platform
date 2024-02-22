@@ -24,7 +24,7 @@
   <project revision="f02882e2aa9279ca7becca8d0cedbffe88b5a253" remote="python2" upstream="kirkstone"   name="meta-python2"            path="sources/meta-python2"/>
 
   <project revision="acd0ab4a09e72e9b07590a09ccf9fddfd69ca036" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project revision="6efdeb610af0fc1f0c2bb7147086ecd4a2fe22d1" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
+  <project revision="74d57e810b44a7f569a8fdb99c41e0120a9f309b" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
   <project revision="502be8134cd55d4d3646f43f47fd2d6b233c71bf" remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" />
   
   <project revision="2d08d6bf376a1e06c53164fd6283b03ec2309da4" remote="clang" name="meta-clang" path="sources/meta-clang" />
