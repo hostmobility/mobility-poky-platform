@@ -23,7 +23,7 @@
 
   <project revision="f02882e2aa9279ca7becca8d0cedbffe88b5a253" remote="python2" upstream="kirkstone"   name="meta-python2"            path="sources/meta-python2"/>
 
-  <project revision="16614fa2d93e16414d373f8cd8a760603d070d96" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project remote="hm" revision="T30-kernel-fix-sdcard-6.1.26-poky" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
   <project revision="6efdeb610af0fc1f0c2bb7147086ecd4a2fe22d1" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
 
   <project revision="502be8134cd55d4d3646f43f47fd2d6b233c71bf" remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" />
