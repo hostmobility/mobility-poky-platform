@@ -311,15 +311,27 @@ EOF
   docker_exit_code=$?
 
   # Copy created e.g. release tar.gz that include *_hmupdate.img back to Yocto deploy dir to keep them.
-  hmupdate_archive=build/tmp/deploy/images/"${MACHINE}/hmupdate-${image}"
-  [[ -d "$hmupdate_archive" ]]
-    rm -r "$hmupdate_archive" \
-    || return 1
+  hmupdate_archive="$YOCTO_FOLDER/build/tmp/deploy/images/${MACHINE}/hmupdate-${image}"
+  if [[ -d "$hmupdate_archive" ]]; then
+    rm -r "$hmupdate_archive"
+    if (( $? != 0 )); then
+      >&2 echo "🔴 Error in ${FUNCNAME[0]} Failed to remove directory $hmupdate_archive"
+      return 1
+    fi
+  fi
 
-  [[ -d "$hmupdate_archive" ]] || mkdir "$hmupdate_archive"
-  cp \
-    mx4-deploy/deploy-mx4-${short_machine}/release/*.tar.gz "${hmupdate_archive}/" \
-    || return 1
+  if [[ ! -d "$hmupdate_archive" ]]; then
+    mkdir "$hmupdate_archive"
+    if (( $? != 0 )); then
+      >&2 echo "🔴 Error in ${FUNCNAME[0]} Failed to create directory $hmupdate_archive"
+      return 1
+    fi
+  fi
+  cp "$YOCTO_FOLDER"/mx4-deploy/deploy-mx4-"${short_machine}"/release/*.tar.gz "${hmupdate_archive}/"
+  if (( $? != 0 )); then
+    >&2 echo "🔴 Error in ${FUNCNAME[0]} Failed to copy $YOCTO_FOLDER/mx4-deploy/deploy-mx4-${short_machine}/release/*.tar.gz to $hmupdate_archive"
+    return 1
+  fi
 
   return $docker_exit_code
 }
