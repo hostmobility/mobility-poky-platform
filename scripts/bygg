@@ -272,7 +272,7 @@ create_hm_update_image()
   # to mx4-deploy. This directory was created by our crops/poky based container
   # which runs as the current user which might be different.
   chmod o+w mx4-deploy
-
+set -x
   cat >build_mx4-v2.sh <<'EOF'
 #!/bin/bash -e
 echo "Start build make_system.sh deploy only!"
@@ -282,14 +282,14 @@ cd mx4-deploy
 sudo rm -rf deploy-*
 
 DEPLOY_DIR=../${BUILD_FOLDER}/tmp/deploy/images/$MACHINE
-
+ls -l
 #Remove extra dtb symlink for example *-mx4-t30-mx4-t30.dtb so only *-mx4-t30.dtb is left.
 dtb=$(find $DEPLOY_DIR/ -name "*-${1}-${1}.dtb")
 if [ -n "$dtb" ]; then
   rm "$dtb"
 fi
 #Now there should be only target dtb name left(symlink).
-
+ls -l
 if [[ "$SHORT_MACHINE" == "c61" ]]; then
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.tar.xz
   dtb=$(find $DEPLOY_DIR/ -name "vf61*-${MACHINE}.dtb")
