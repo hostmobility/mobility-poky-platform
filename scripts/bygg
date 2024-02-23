@@ -265,6 +265,7 @@ create_hm_update_image()
 {
   echo "☕ Creating update image $image for $MACHINE"
   short_machine="$(get_short_machine_name)"
+  build_folder=$(get_build_folder "${wanted_build_folder}")
   cd "$YOCTO_FOLDER"
 
   # Allow hostmobility/buildplatform-mx4:2.0, which runs as uid = 1000 to write
@@ -280,8 +281,7 @@ cd mx4-deploy
 # Clean up old directories. make_system.sh requires it!
 sudo rm -rf deploy-*
 
-DEPLOY_DIR=../build/tmp/deploy/images/$MACHINE
-
+DEPLOY_DIR=../${BUILD_FOLDER}/tmp/deploy/images/$MACHINE
 if [[ "$SHORT_MACHINE" == "c61" ]]; then
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.tar.xz
   dtb=$(find $DEPLOY_DIR/ -name "vf61*-${MACHINE}.dtb")
@@ -305,6 +305,7 @@ EOF
       -e SHORT_MACHINE="$short_machine" \
       -e TARGET_IMAGE="$image" \
       -e BUILD_TAG="$BUILD_TAG" \
+      -e BUILD_FOLDER=$build_folder
       hostmobility/buildplatform-mx4:2.0 \
       bash ./build_mx4-v2.sh
 
