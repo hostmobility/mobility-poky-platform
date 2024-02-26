@@ -6,6 +6,7 @@
 # a Docker environment.
 
 set -e
+set -x
 
 SCRIPT_NAME=$(realpath "$0")
 SCRIPT_FOLDER=$(dirname "$SCRIPTNAME")
@@ -272,7 +273,7 @@ create_hm_update_image()
   # to mx4-deploy. This directory was created by our crops/poky based container
   # which runs as the current user which might be different.
   chmod o+w mx4-deploy
-set -x
+
   cat >build_mx4-v2.sh <<'EOF'
 #!/bin/bash -e
 echo "Start build make_system.sh deploy only!"
@@ -297,6 +298,11 @@ else
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.ext3
   dtb=$(find $DEPLOY_DIR/ -name "tegra*-${MACHINE}.dtb")
 fi
+echo /make_system.sh \
+  -t "$SHORT_MACHINE" \
+  -r "$root_filesystem" \
+  -k "$DEPLOY_DIR/uImage" \
+  -d "$dtb"
 
 ./make_system.sh \
   -t "$SHORT_MACHINE" \
