@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (C) 2023 Host Mobility AB
+# Copyright (C) 2023, 2024 Host Mobility AB
 
 # This script builds packages and images for Host Mobility hardware in
 # a Docker environment.
