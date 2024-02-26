@@ -369,7 +369,7 @@ sync_packages()
     mkdir -p "${destination_parts[0]}/$packages_path"
   fi
 
-  rsync -avr "${1}"/build*/tmp/deploy/ipk/ "${2}/$packages_path" || return 1
+  rsync --min-size=1B -avrm "${1}"/build*/tmp/deploy/ipk/ "${2}/$packages_path" || return 1
 
   return 0
 }
@@ -396,7 +396,7 @@ sync_images()
   fi
 
   if [[ -z $3 ]]; then
-    rsync -avr "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+    rsync --min-size=1B -avrm "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
   else
     pattern=${3#"'"}   # Remove leading single quote
     pattern=${pattern%"'"}   # Remove trailing single quote
@@ -408,8 +408,7 @@ sync_images()
       include_pattern+=(--include="$inc")
     done
 
-    # shellcheck disable=SC2086
-    rsync -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+    rsync --min-size=1B -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
   fi
 
   return 0
