@@ -284,7 +284,7 @@ sudo rm -rf deploy-*
 DEPLOY_DIR=../${BUILD_FOLDER}/tmp/deploy/images/$MACHINE
 
 #Remove extra dtb symlink for example *-mx4-t30-mx4-t30.dtb so only *-mx4-t30.dtb is left.
-dtb=$(find $DEPLOY_DIR/ -name "*-${1}-${1}.dtb")
+dtb=$(find "$DEPLOY_DIR/" -name "*-${MACHINE}-${MACHINE}.dtb")
 if [ -n "$dtb" ]; then
   rm "$dtb"
 fi
@@ -292,10 +292,10 @@ fi
 
 if [[ "$SHORT_MACHINE" == "c61" ]]; then
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.tar.xz
-  dtb=$(find $DEPLOY_DIR/ -name "vf61*-${MACHINE}.dtb")
+  dtb=$(find "$DEPLOY_DIR/" -name "vf61*-${MACHINE}.dtb")
 else
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.ext3
-  dtb=$(find $DEPLOY_DIR/ -name "tegra*-${MACHINE}.dtb")
+  dtb=$(find "$DEPLOY_DIR/" -name "tegra*-${MACHINE}.dtb")
 fi
 
 ./make_system.sh \
