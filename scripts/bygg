@@ -315,7 +315,6 @@ EOF
       -e MACHINE="$MACHINE" \
       -e SHORT_MACHINE="$short_machine" \
       -e TARGET_IMAGE="$image" \
-      -e BUILD_TAG="$BUILD_TAG" \
       -e BUILD_FOLDER="$build_folder" \
       hostmobility/buildplatform-mx4:2.0 \
       bash ./build_mx4-v2.sh
