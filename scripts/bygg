@@ -297,7 +297,7 @@ elif  [[ "$SHORT_MACHINE" == "t30" ]]; then
   root_filesystem=$DEPLOY_DIR/${TARGET_IMAGE}-${MACHINE}.ext3
   dtb=$(find "$DEPLOY_DIR/" -name "tegra*-${MACHINE}.dtb")
 else
-  echo Unknown mx4 machine: ${MACHINE}($SHORT_MACHINE)
+  echo "Unknown mx4 machine: ${MACHINE} (${SHORT_MACHINE})"
   exit 2
 fi
 
