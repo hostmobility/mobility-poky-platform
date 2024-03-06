@@ -8,7 +8,7 @@
 set -e
 
 SCRIPT_NAME=$(realpath "$0")
-SCRIPT_FOLDER=$(dirname "$SCRIPTNAME")
+SCRIPT_FOLDER=$(dirname "$SCRIPT_NAME")
 PLATFORM_FOLDER=$(realpath "$(dirname "$SCRIPT_FOLDER")")
 
 # Parse options or show usage which exits app
