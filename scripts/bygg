@@ -439,6 +439,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   docker_args+=(-v "$SSH_AUTH_SOCK:/ssh.socket")
   docker_args+=(-v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}")
   docker_args+=(--workdir="${PLATFORM_FOLDER}")
+  docker_args+=(-e "BUILD_TAG=$BUILD_TAG")
   docker_args+=("$CONTAINER_NAME")
   docker_args+=("$SCRIPT_NAME" "$@")
   docker "${docker_args[@]}" || { echo "🔴 docker ${docker_args[*]} failed" ; exit 1 ; }
