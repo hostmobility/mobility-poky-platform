@@ -16,17 +16,13 @@ usage() {
 
   cat << EOF
 $0 - build bitbake recipes/images using docker
-Usage: $(basename "$0") [options] -f MANIFEST-FILE -m MACHINE (-r RECIPES | -i IMAGES)
+Usage: [BUILD_COMMAND] $(basename "$0") [options] -f MANIFEST-FILE -m MACHINE
 
 Required arguments:
   -f, --manifest-file FILE                 Manifest file to use, e.g. kirkstone.xml. See list of manifest files in this repo.
-  -m, --machine MACHINE                    Specify the target machine for the build. Multible machines are supported.
+  -m, --machine MACHINE                    Specify the target machine for the build. Multiple machines are supported.
                                            Should be unique and will mark the build and image names with this tag.
                                            On the deployed system, it can be read out from /etc/platform-build-tag.
-  -i, --image IMAGE                        Specify the BSP image to use for the build.
-                                           Can be combined with recipe option or skipped if 'recipe' option is used.
-                                           Multible images are supported (--image image1 --image image2).
-  -r, --recipe RECIPE                      Build one or more bb recipes (--recipe recipe1 --recipe recipe2). Can be skipped if image is used.
 
 Options:
   -b, --build-folder PATH                  Specify the directory for the build output. Defaults to build.
@@ -34,10 +30,15 @@ Options:
   -d, --distro DISTRO                      Specify the target poky distro, e.g. poky or fslc-wayland. Defaults to poky.
   -g, --skip-docker-pull                   Skip update of docker container.
   -h, --help                               Display this help message and exit.
+  -i, --image IMAGE                        Specify the BSP image to use for the build. Multiple images are supported (--image image1 --image image2).
+                                           Can be combined with 'recipe' option or skipped if 'recipe' option or BUILD_COMMAND is used.
+
   -n, --skip-init-build                    Setup bitbake. Leaves us in build folder.
   -o, --populate-sdk                       Populate the SDK after the build.
   -p, --deploy-packages DEST               Deploy packages to the specified remote or local directory, e.g. user@server:/srv/packages or /tmp/packages.
                                            This will deploy ipk packages below distro/(release_codename|manifest file).
+  -r, --recipe RECIPE                      Build one or more bb recipes (--recipe recipe1 --recipe recipe2). Can be skipped if 'image' option
+                                           or BUILD_COMMAND is used.
   -s, --repo-sync                          Synchronize repositories before starting the build. Mainfest file repos will be updated to target git hash.
   -t, --build-tag TAG                      Specify a tag for the build (recommended).
   -u, --templateconf PATH                  Expect path to directory with local.conf.sample or meta-layer path with conf. Example are
@@ -50,12 +51,22 @@ Options:
                                            e.g. 'uImage,zImage,*.scr,*.tar.gz,*.wic.gz' (single quotes required here). By default all the image-related
                                            build files are copied (deployed).
 
-Example usage:
+Environment variables:
+  BUILD_COMMAND                            Set this variable to execute a custom build command, for example "bitbake -c menuconfig virtual/kernel".
+                                           This command is executed before any recipe or image build.
+
+
+Example usage 1:
   ./$(basename "$0")  --delete-conf \
   --manifest-file kirkstone.xml \
   --machine imx8mp-var-dart-hmx1 \
   --build-tag 42 \
   --image console-hostmobility-image \
+
+Example usage 2:
+  BUILD_COMMAND="bitbake -c menuconfig virtual/kernel" ./$(basename "$0") \
+  --manifest-file kirkstone.xml \
+  --machine mx4-c61 \
 
 EOF
   exit 1
@@ -95,7 +106,6 @@ parse_options()
 
   # Default distro to poky if it is undefined
   : "${DISTRO:=poky}"
-  BUILD_COMMAND=$@
 
   # Check if MANIFEST_FILE is set and print usage if it's not
   if [[ -z "$MANIFEST_FILE" ]]; then
@@ -439,6 +449,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   docker_args+=(-v "$SSH_AUTH_SOCK:/ssh.socket")
   docker_args+=(-v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}")
   docker_args+=(--workdir="${PLATFORM_FOLDER}")
+  docker_args+=(-e "BUILD_COMMAND=$BUILD_COMMAND")
   docker_args+=(-e "BUILD_TAG=$BUILD_TAG")
   docker_args+=("$CONTAINER_NAME")
   docker_args+=("$SCRIPT_NAME" "$@")
