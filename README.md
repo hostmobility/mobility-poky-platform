@@ -60,34 +60,35 @@ The build result will end up in the `mobility-bsp-platform/build/tmp/deploy/imag
 ## Building in Docker
 
 You can build this platform without installing the Yocto build tools directly on the host.
-To do so, you can use our custom [bid](https://github.com/hostmobility/mobility-poky-platform/blob/master/scripts/bid) (build-in-docker) script.
+To do so, you can use our custom [bygg](https://github.com/hostmobility/mobility-poky-platform/blob/master/scripts/bygg) script
+together with [Docker](https://en.wikipedia.org/wiki/Docker_(software)).
 
 Usage:
 ```
 $ git clone git@github.com:hostmobility/mobility-poky-platform.git
 $ cd mobility-poky-platform
 $ mkdir ~/YOCTO_DOWNLOADS
-$ scripts/bid [options] [build command]
+$ [BUILD_COMMAND] scripts/bygg [options] -f MANIFEST-FILE -m MACHINE
 ```
 
 ### Example build commands for the mx4-c61 machine
 
-Sync repositories using the kirkstone manifest file and the master branch:
+Sync repositories using the kirkstone manifest file and drop to a bash prompt:
 
 ```
-$ scripts/bid -s -f kirkstone.xml -a master -m mx4-c61 bash
+$ BUILD_COMMAND="bash" scripts/bygg -s -f kirkstone.xml -m mx4-c61
 ```
 
 Do the same as above but build the Linux kernel:
 
 ```
-$ scripts/bid -f kirkstone.xml -a master -m mx4-c61 -d poky bitbake virtual/kernel
+$ BUILD_COMMAND="bitbake virtual/kernel" scripts/bygg -s -f kirkstone.xml -m mx4-c61
 ```
 
 The same as above but build a complete image:
 
 ```
-$ scripts/bid -f kirkstone.xml -a master -m mx4-c61 -d poky bitbake console-hostmobility-image
+$ scripts/bygg -s -f kirkstone.xml -m mx4-c61 -i console-hostmobility-image
 ```
 
 ## Installing (flashing) using a USB drive
