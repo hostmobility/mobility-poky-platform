@@ -41,7 +41,7 @@
   <project revision="e86f4ac6ed3c18c1ed3dd76824fda4dd0e8c4f8d" remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
   <project revision="1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f" remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
 
-  <project revision="3389fdf75af2be0deab1c3c8842440aec9d18388" remote="hm" name="meta-mobility-c1-distro" path="sources/meta-mobility-c1-distro"/>
+  <project revision="721bd8a775ca7a58edb792c172f0a9b808c5172b" remote="hm" name="meta-mobility-c1-distro" path="sources/meta-mobility-c1-distro"/>
 </manifest>
 
 
