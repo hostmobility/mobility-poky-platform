@@ -10,7 +10,6 @@
   <remote fetch="https://github.com/sbabic"        name="sbabic"/>
   <remote fetch="https://github.com/varigit"       name="variscite"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
-  <remote fetch="ssh://git@gitlab.alkit.se:2222/hm" name="alkit-gitlab"/>
   <remote fetch="https://github.com/kraj" name="clang"/>
   <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
   <remote alias="repo" fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
@@ -27,7 +26,7 @@
 
 
   <project remote="hm" revision="main" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project remote="alkit-gitlab" revision="main" name="meta-alkit-hm010-01-poky-distro" path="sources/meta-mobility-poky-distro"/>
+  <project remote="hm" revision="main" name="meta-mobility-c1-distro" path="sources/meta-mobility-c1-distro"/>
   <project remote="hmssh" revision="master" name="mx4-deploy.git" path="mx4-deploy"/>
   
   <project remote="clang" name="meta-clang" path="sources/meta-clang" />

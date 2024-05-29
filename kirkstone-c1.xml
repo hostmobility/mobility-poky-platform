@@ -10,7 +10,6 @@
   <remote fetch="https://github.com/sbabic"        name="sbabic"/>
   <remote fetch="https://github.com/varigit"       name="variscite"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
-  <remote fetch="ssh://git@gitlab.alkit.se:2222/hm" name="alkit-gitlab"/>
   <remote fetch="https://github.com/kraj" name="clang"/>
   <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
   <remote fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
@@ -42,7 +41,7 @@
   <project revision="e86f4ac6ed3c18c1ed3dd76824fda4dd0e8c4f8d" remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
   <project revision="1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f" remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
 
-  <project revision="be6bc4443261636a43d749164e961dce69ef63b7" remote="alkit-gitlab" name="meta-alkit-hm-wice" path="sources/meta-alkit-hm-wice"/>
+  <project revision="3389fdf75af2be0deab1c3c8842440aec9d18388" remote="hm" name="meta-mobility-c1-distro" path="sources/meta-mobility-c1-distro"/>
 </manifest>
 
 
