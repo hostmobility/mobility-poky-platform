@@ -12,30 +12,25 @@
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
   <remote fetch="https://github.com/kraj" name="clang"/>
   <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
-  <remote alias="repo" fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
+  <remote fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
   <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
-  <remote fetch="https://git.openembedded.org"     name="python"/>
-  
-
+  <remote fetch="https://git.openembedded.org"     name="python2"/>
   <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="poky" path="sources/poky"/>
   <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale"/>
   <project remote="freescale" revision="kirkstone" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro"/>
 
   <project remote="oe" revision="kirkstone" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded"/>
-  <project remote="python" upstream="kirkstone"   name="meta-python2" path="sources/meta-python2"/>
 
+  <project remote="python2" upstream="kirkstone"   name="meta-python2"            path="sources/meta-python2"/>
 
   <project remote="hm" revision="main" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
   <project remote="hm" revision="master" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
   <project remote="hmssh" revision="master" name="mx4-deploy.git" path="mx4-deploy"/>
   
   <project remote="clang" name="meta-clang" path="sources/meta-clang" />
-  <project remote="OSSystems" name="meta-browser" path="sources/meta-browser" revision="c7651db9417d0694a05438967ca24b26ec69f9e1" />
-  <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" revision="cca772a457a75b2661371932ff79c392da3118db" upstream="master"/>
-  <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="refs/tags/rel_imx_5.15.52_2.1.0" upstream="kirkstone-5.15.52-2.1.0">
-    <linkfile dest="imx-setup-release.sh" src="tools/imx-setup-release.sh"/>
-    <linkfile dest="README-IMXBSP" src="README"/>
-  </project>
+  <project remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
+  <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
+  <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="refs/tags/rel_imx_5.15.52_2.1.0" upstream="kirkstone-5.15.52-2.1.0"/>
   <project remote="QT5" upstream="kirkstone"   name="meta-qt5"                path="sources/meta-qt5"/>
   <project remote="sbabic" upstream="kirkstone"   name="meta-swupdate"           path="sources/meta-swupdate"/>
   <project remote="variscite" upstream="kirkstone"   name="meta-variscite-hab"      path="sources/meta-variscite-hab"/>
