@@ -34,7 +34,7 @@
   <project remote="QT5" upstream="kirkstone"   name="meta-qt5"                path="sources/meta-qt5"/>
   <project remote="sbabic" upstream="kirkstone"   name="meta-swupdate"           path="sources/meta-swupdate"/>
   <project remote="variscite" upstream="kirkstone"   name="meta-variscite-hab"      path="sources/meta-variscite-hab"/>
-  <project remote="variscite" upstream="kirkstone"   name="meta-variscite-bsp"      path="sources/meta-variscite-bsp"/>
+  <project revision="44663efe7aefeced27fe70fb9aa50bb6848bd78f" remote="variscite" upstream="kirkstone"   name="meta-variscite-bsp"      path="sources/meta-variscite-bsp"/>
   <project remote="variscite" upstream="kirkstone"   name="meta-variscite-sdk"      path="sources/meta-variscite-sdk">
       <linkfile src="scripts/var-setup-release.sh" dest="var-setup-release.sh"/>
   </project>
