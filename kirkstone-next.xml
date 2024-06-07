@@ -16,7 +16,7 @@
   <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
   <remote fetch="https://git.openembedded.org"     name="python2"/>
   <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="poky" path="sources/poky"/>
-  <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale"/>
+  <project revision="3e9ef23d98aa842cf84251a27c9b8dde8925ea61" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
   <project remote="freescale" revision="kirkstone" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro"/>
 
   <project remote="oe" revision="kirkstone" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded"/>
