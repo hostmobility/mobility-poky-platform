@@ -125,8 +125,19 @@ parse_options()
 find_templateconf()
 {
   case "$MACHINE" in
-    imx8mp-var-dart-hmx1) machine_folder="hmx" ;;
-    *) machine_folder="generic" ;;
+    "")
+      >&2 echo "🔴 Error in ${FUNCNAME[0]}: Environment variable MACHINE is not defined."
+      return 1
+      ;;
+    imx8mp-var-dart-hmx1)
+      machine_folder="hmx"
+      ;;
+    verdin-am62-hmm)
+      machine_folder="hmm"
+      ;;
+    *)
+      machine_folder="generic"
+      ;;
   esac
 
   if [[ -z "$1" ]]; then
@@ -169,9 +180,19 @@ get_build_folder()
 {
   if [[ -z "$1" ]]; then
     case "$MACHINE" in
-          "")  >&2 echo "🔴 Error in ${FUNCNAME[0]} Environment variable MACHINE is not defined."; return 1; ;;
-          imx8mp-var-dart-hmx1) echo "build-hmx" ;;
-          *)                    echo "build" ;;
+      "")
+        >&2 echo "🔴 Error in ${FUNCNAME[0]}: Environment variable MACHINE is not defined."
+        return 1
+        ;;
+      imx8mp-var-dart-hmx1)
+        echo "build-hmx"
+        ;;
+      verdin-am62-hmm)
+        echo "build-hmm"
+        ;;
+      *)
+        echo "build"
+        ;;
     esac
   else
     echo "build"
