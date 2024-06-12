@@ -15,31 +15,31 @@
   <remote fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
   <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
   <remote fetch="https://git.openembedded.org"     name="python2"/>
-  <project revision="0e4966eb77928a07230e031d6d9c477c01ec9cce" remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" />
+  <project revision="e139e9d0ce343ba77a09601a976c92acd562c9df" remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" />
   <project revision="3e9ef23d98aa842cf84251a27c9b8dde8925ea61" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
   <project revision="d5bbb487b2816dfc74984a78b67f7361ce404253" remote="freescale" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro" />
 
-  <project revision="9c5541f7e18a1fac3b8dea71e1ebb8398d58e6ff" remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" />
+  <project revision="0560b848996a0feb410a8cd8ca07c60fe2f3b5bc" remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" />
 
   <project revision="f02882e2aa9279ca7becca8d0cedbffe88b5a253" remote="python2" upstream="kirkstone"   name="meta-python2"            path="sources/meta-python2"/>
 
-  <project revision="4ea221315856a22b5d8fb1f9133c87e31a4f0065" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project revision="93d093911e21795134f9387da8163cd50617cbdd" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
+  <project revision="e682a30c869a9f40e641a826b538477980ecf03a" remote="hm"  name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project revision="747c4b4f978ca27eead5fc2f3f254b5f18fd62ef" remote="hm"  name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
   <project revision="502be8134cd55d4d3646f43f47fd2d6b233c71bf" remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" />
   
-  <project revision="2d08d6bf376a1e06c53164fd6283b03ec2309da4" remote="clang" name="meta-clang" path="sources/meta-clang" />
+  <project revision="312ff1c39b1bf5d35c0321e873417eb013cea477" remote="clang" name="meta-clang" path="sources/meta-clang" />
   <project revision="c7651db9417d0694a05438967ca24b26ec69f9e1" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
-  <project revision="e60f59f3567b78286ea34337dbae468a5f18f1c6" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
+  <project revision="8b356b91ed0d4bcab72350a2ddcef880f4fa5c26" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
   <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="43c0642ed901ab816d350d04bd3b9526f46cde5d" upstream="kirkstone-5.15.71-2.2.0"/>
-  <project revision="ae8a97f79364bed1abc297636f7933d0e35f22be" remote="QT5" upstream="kirkstone"   name="meta-qt5" path="sources/meta-qt5"/>
-  <project revision="7a85c71f40c4bf445f041fa7aad70733c9cbc0ba" remote="sbabic" upstream="kirkstone"   name="meta-swupdate" path="sources/meta-swupdate"/>
+  <project revision="644ebf220245bdc06e7696ccc90acc97a0dd2566" remote="QT5" upstream="kirkstone"   name="meta-qt5" path="sources/meta-qt5"/>
+  <project revision="3521b91de70e012e3508692682e89fcd264ed9eb" remote="sbabic" upstream="kirkstone"   name="meta-swupdate" path="sources/meta-swupdate"/>
   <project revision="aee9a7a30d133861b21bdab441d0c91828f6f690" remote="variscite" upstream="kirkstone"   name="meta-variscite-hab" path="sources/meta-variscite-hab"/>
-  <project revision="ee1c511b1640a641a840aa48e313dd4d7e9652fa" remote="variscite" upstream="kirkstone"   name="meta-variscite-bsp" path="sources/meta-variscite-bsp"/>
-  <project revision="a3ca0c3268388affbd993f2d2ba557c7e6da7750" remote="variscite" upstream="kirkstone"   name="meta-variscite-sdk" path="sources/meta-variscite-sdk">
+  <project revision="44663efe7aefeced27fe70fb9aa50bb6848bd78f" remote="variscite" upstream="kirkstone"   name="meta-variscite-bsp" path="sources/meta-variscite-bsp"/>
+  <project revision="ff423989697e6f4dde530d45e4afad15e42196a8" remote="variscite" upstream="kirkstone"   name="meta-variscite-sdk" path="sources/meta-variscite-sdk">
       <linkfile src="scripts/var-setup-release.sh" dest="var-setup-release.sh"/>
   </project>
-  <project revision="e86f4ac6ed3c18c1ed3dd76824fda4dd0e8c4f8d" remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
-  <project revision="1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f" remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
+  <project revision="1c107bc6dc6437be87fbcd6a91528dba316384cf" remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
+  <project revision="9e94b64bdfebcf7bfdf2af6447cec866a4efa814" remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
 </manifest>
 
 
