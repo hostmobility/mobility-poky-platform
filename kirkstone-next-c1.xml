@@ -3,46 +3,11 @@
 
   <default sync-j="4" revision="kirkstone"/>
 
-  <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
-  <remote fetch="https://github.com/Freescale" name="freescale"/>
-  <remote fetch="https://github.com/openembedded" name="oe"/>
-  <remote fetch="https://github.com/meta-qt5"      name="QT5"/>
-  <remote fetch="https://github.com/sbabic"        name="sbabic"/>
-  <remote fetch="https://github.com/varigit"       name="variscite"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
-  <remote fetch="https://github.com/kraj" name="clang"/>
-  <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
-  <remote alias="repo" fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
-  <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
-  <remote fetch="https://git.openembedded.org"     name="python"/>
   
+  <include name="kirkstone-next.xml" />
 
-  <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="poky" path="sources/poky"/>
-  <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale"/>
-  <project remote="freescale" revision="kirkstone" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro"/>
-
-  <project remote="oe" revision="kirkstone" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded"/>
-  <project remote="python" upstream="kirkstone"   name="meta-python2" path="sources/meta-python2"/>
-
-
-  <project remote="hm" revision="main" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project remote="hm" revision="main" name="meta-mobility-c1-distro" path="sources/meta-mobility-c1-distro"/>
-  <project remote="hmssh" revision="master" name="mx4-deploy.git" path="mx4-deploy"/>
-  
-  <project remote="clang" name="meta-clang" path="sources/meta-clang" />
-  <project remote="OSSystems" name="meta-browser" path="sources/meta-browser" revision="c7651db9417d0694a05438967ca24b26ec69f9e1" />
-  <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" revision="cca772a457a75b2661371932ff79c392da3118db" upstream="master"/>
-  <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="refs/tags/rel_imx_5.15.52_2.1.0" upstream="kirkstone-5.15.52-2.1.0">
-    <linkfile dest="imx-setup-release.sh" src="tools/imx-setup-release.sh"/>
-    <linkfile dest="README-IMXBSP" src="README"/>
-  </project>
-  <project remote="QT5" upstream="kirkstone"   name="meta-qt5"                path="sources/meta-qt5"/>
-  <project remote="sbabic" upstream="kirkstone"   name="meta-swupdate"           path="sources/meta-swupdate"/>
-  <project remote="variscite" upstream="kirkstone"   name="meta-variscite-hab"      path="sources/meta-variscite-hab"/>
-  <project remote="variscite" upstream="kirkstone"   name="meta-variscite-bsp"      path="sources/meta-variscite-bsp"/>
-  <project remote="variscite" upstream="kirkstone"   name="meta-variscite-sdk"      path="sources/meta-variscite-sdk">
-      <linkfile src="scripts/var-setup-release.sh" dest="var-setup-release.sh"/>
-  </project>
-  <project remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
-  <project remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
+  <project revision="main" remote="hm" name="meta-mobility-c1-distro" path="sources/meta-mobility-c1-distro"/>
 </manifest>
+
+
