@@ -3,7 +3,7 @@
 
   <default sync-j="4" revision="kirkstone"/>
 
-  <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
+ <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
   <remote fetch="https://github.com/Freescale" name="freescale"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
   <remote fetch="https://github.com/meta-qt5"      name="QT5"/>
@@ -15,6 +15,8 @@
   <remote fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
   <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
   <remote fetch="https://git.openembedded.org"     name="python2"/>
+  <remote fetch="https://git.toradex.com" name="tdx"/>
+
   <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="poky" path="sources/poky"/>
   <project revision="3e9ef23d98aa842cf84251a27c9b8dde8925ea61" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
   <project remote="freescale" revision="kirkstone" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro"/>
@@ -38,6 +40,12 @@
   <project remote="variscite" upstream="kirkstone"   name="meta-variscite-sdk"      path="sources/meta-variscite-sdk">
       <linkfile src="scripts/var-setup-release.sh" dest="var-setup-release.sh"/>
   </project>
-  <project remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
-  <project remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
+  <project remote="freescale" upstream="kirkstone" name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
+  <project remote="freescale" upstream="kirkstone" name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
+
+  <project remote="yocto" upstream="kirkstone" name="meta-arm" path="sources/meta-arm"/>
+  <project remote="yocto" upstream="kirkstone" name="meta-ti" path="sources/meta-ti"/>
+
+  <project remote="tdx" upstream="kirkstone-6.x.y" name="meta-toradex-bsp-common.git" path="sources/meta-toradex-bsp-common"/>
+  <project remote="tdx" upstream="kirkstone-6.x.y" name="meta-toradex-ti.git" path="sources/meta-toradex-ti"/>
 </manifest>
