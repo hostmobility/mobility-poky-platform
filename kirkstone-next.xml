@@ -46,6 +46,9 @@
   <project remote="yocto" upstream="kirkstone" name="meta-arm" path="sources/meta-arm"/>
   <project remote="yocto" upstream="kirkstone" name="meta-ti" path="sources/meta-ti"/>
 
-  <project remote="tdx" upstream="kirkstone-6.x.y" name="meta-toradex-bsp-common.git" path="sources/meta-toradex-bsp-common"/>
-  <project remote="tdx" upstream="kirkstone-6.x.y" name="meta-toradex-ti.git" path="sources/meta-toradex-ti"/>
+  <project revision="260e3adc2bf322f52d81c0642c825088a88bb051" remote="yocto" upstream="kirkstone" name="meta-arm" path="sources/meta-arm"/>
+  <project revision="c57b63147d2ac0dde16e43f7407d0ff50e62efdb" remote="yocto" upstream="kirkstone" name="meta-ti" path="sources/meta-ti"/>
+
+  <project revision="0cb7188573584dd9db39e5689e843edbe9440588" remote="tdx" upstream="kirkstone-6.x.y" name="meta-toradex-bsp-common.git" path="sources/meta-toradex-bsp-common"/>
+  <project revision="e4bb24ea981b0307c0a74468a3221bcdc3d19ed5" remote="tdx" upstream="kirkstone-6.x.y" name="meta-toradex-ti.git" path="sources/meta-toradex-ti"/>
 </manifest>
