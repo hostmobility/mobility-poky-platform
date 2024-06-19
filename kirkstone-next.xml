@@ -43,9 +43,6 @@
   <project remote="freescale" upstream="kirkstone" name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
   <project remote="freescale" upstream="kirkstone" name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
 
-  <project remote="yocto" upstream="kirkstone" name="meta-arm" path="sources/meta-arm"/>
-  <project remote="yocto" upstream="kirkstone" name="meta-ti" path="sources/meta-ti"/>
-
   <project revision="260e3adc2bf322f52d81c0642c825088a88bb051" remote="yocto" upstream="kirkstone" name="meta-arm" path="sources/meta-arm"/>
   <project revision="c57b63147d2ac0dde16e43f7407d0ff50e62efdb" remote="yocto" upstream="kirkstone" name="meta-ti" path="sources/meta-ti"/>
 
