@@ -34,6 +34,7 @@
   <project revision="8b356b91ed0d4bcab72350a2ddcef880f4fa5c26" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
   <project revision="43c0642ed901ab816d350d04bd3b9526f46cde5d" name="meta-imx" path="sources/meta-imx" remote="nxp-imx" upstream="kirkstone-5.15.71-2.2.0"/>
   <project revision="644ebf220245bdc06e7696ccc90acc97a0dd2566" remote="QT5" upstream="kirkstone"   name="meta-qt5" path="sources/meta-qt5"/>
+  <project revision="e95c19da9b484ec6973a34c3ad6a8463f2e13d66" remote="Java" upstream="kirkstone"   name="meta-java"                path="sources/meta-java"/>
   <project revision="3521b91de70e012e3508692682e89fcd264ed9eb" remote="sbabic" upstream="kirkstone"   name="meta-swupdate" path="sources/meta-swupdate"/>
   <project revision="aee9a7a30d133861b21bdab441d0c91828f6f690" remote="variscite" upstream="kirkstone"   name="meta-variscite-hab" path="sources/meta-variscite-hab"/>
   <project revision="44663efe7aefeced27fe70fb9aa50bb6848bd78f" remote="variscite" upstream="kirkstone"   name="meta-variscite-bsp" path="sources/meta-variscite-bsp"/>

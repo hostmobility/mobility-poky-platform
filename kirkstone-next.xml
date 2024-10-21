@@ -7,6 +7,7 @@
   <remote fetch="https://github.com/Freescale" name="freescale"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
   <remote fetch="https://github.com/meta-qt5"      name="QT5"/>
+  <remote fetch="https://github.com/meta-java"      name="Java"/>
   <remote fetch="https://github.com/sbabic"        name="sbabic"/>
   <remote fetch="https://github.com/varigit"       name="variscite"/>
   <remote fetch="http://github.com/hostmobility/" name="hm"/>
@@ -33,6 +34,7 @@
   <project revision="c7651db9417d0694a05438967ca24b26ec69f9e1" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
   <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
   <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="refs/tags/rel_imx_5.15.52_2.1.0" upstream="kirkstone-5.15.52-2.1.0"/>
+  <project remote="Java" upstream="kirkstone"   name="meta-java"                path="sources/meta-java"/>
   <project remote="QT5" upstream="kirkstone"   name="meta-qt5"                path="sources/meta-qt5"/>
   <project remote="sbabic" upstream="kirkstone"   name="meta-swupdate"           path="sources/meta-swupdate"/>
   <project remote="variscite" upstream="kirkstone"   name="meta-variscite-hab"      path="sources/meta-variscite-hab"/>
