@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+
+  <default sync-j="4" revision="kirkstone"/>
+
+  <remote fetch="https://github.com/hostmobility/" name="hm-c2"/>
+
+  <include name="kirkstone-next.xml" />
+
+  <project revision="main" remote="hm" name="meta-mobility-c2-distro" path="sources/meta-mobility-c2-distro"/>
+</manifest>
