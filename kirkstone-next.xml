@@ -16,6 +16,8 @@
   <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
   <remote fetch="https://git.openembedded.org"     name="python2"/>
   <remote fetch="https://git.toradex.com" name="tdx"/>
+  <remote fetch="https://git.yoctoproject.org/git" name="yocto-lts-mixins"/>
+  <project remote="yocto-lts-mixins" revision="kirkstone/rust" name="meta-lts-mixins" path="sources/meta-lts-mixins"/>
 
   <project remote="yocto" revision="kirkstone" upstream="kirkstone" name="poky" path="sources/poky"/>
   <project revision="3e9ef23d98aa842cf84251a27c9b8dde8925ea61" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
