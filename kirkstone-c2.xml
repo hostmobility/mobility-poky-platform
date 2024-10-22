@@ -4,8 +4,11 @@
   <default sync-j="4" revision="kirkstone"/>
 
   <remote fetch="https://github.com/hostmobility/" name="hm"/>
+  <remote fetch="https://git.yoctoproject.org/git" name="yocto-lts-mixins"/>
 
   <include name="kirkstone.xml" />
 
   <project revision="724b807310b12f469147080646763139d179623c" remote="hm" name="meta-mobility-c2-distro" path="sources/meta-mobility-c2-distro"/>
+  <project revision="6a13fff3bd2945dee63e9515db11ef69cbe9daec" remote="yocto-lts-mixins" name="meta-lts-mixins" path="sources/meta-lts-mixins"/>
+
 </manifest>
