@@ -28,6 +28,7 @@ Options:
   -b, --build-folder PATH                  Specify the directory for the build output. Defaults to build.
   -c, --delete-conf                        Delete existing configuration files in the build directory. Recommended if you build multiple different machines.
   -d, --distro DISTRO                      Specify the target poky distro, e.g. poky or fslc-wayland. Defaults to poky.
+  -e, --env-passthrough                    Pass through environment variables such as access tokens and passwords.
   -g, --skip-docker-pull                   Skip update of docker container.
   -h, --help                               Display this help message and exit.
   -i, --image IMAGE                        Specify the BSP image to use for the build. Multiple images are supported (--image image1 --image image2).
@@ -62,6 +63,7 @@ Example usage 1:
   --machine imx8mp-var-dart-hmx1 \
   --build-tag 42 \
   --image console-hostmobility-image \
+  --env-passthrough "ACCESS_TOKEN"
 
 Example usage 2:
   BUILD_COMMAND="bitbake -c menuconfig virtual/kernel" ./$(basename "$0") \
@@ -75,8 +77,8 @@ EOF
 
 parse_options()
 {
-  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n,y:,p:,z:'
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:,env-passthrough:'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n,y:,p:,z:,e:'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
 
@@ -86,6 +88,7 @@ parse_options()
       '-b'|'--build-folder') wanted_build_folder="$2"; shift 2;;
       '-c'|'--delete-conf') DELETE_CONF="y"; shift;;
       '-d'|'--distro') DISTRO="$2"; shift 2;;
+      '-e'|'--env-passthrough') USER_PASSTHROUGH_VARS="$2"; shift 2;;
       '-f'|'--manifest-file') MANIFEST_FILE="$2"; shift 2;;
       '-g'|'--skip-docker-pull') skip_docker_pull=1; shift;;
       '-h'|'--help') usage; ;;
@@ -221,6 +224,12 @@ init_yocto_build()
   [ -d "${CONF_PATH}" ] \
   && [ -n "${DELETE_CONF}" ] \
   && rm -rf ${CONF_PATH} && echo "deleted $CONF_PATH"
+
+  # If user provided env vars to pass through, add them now
+  # for example: USER_PASSTHROUGH_VARS="GITLAB_ACCESS_TOKEN ANOTHER_ENV_VAR"
+  if [ -n "$USER_PASSTHROUGH_VARS" ]; then
+    export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS $USER_PASSTHROUGH_VARS"
+  fi
 
   source "$POKYFOLDER/oe-init-build-env" "$build_folder"
 
@@ -461,7 +470,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   # Build container from inline Docker file above
   build_container
 
-  docker_args=(run -i --rm=true -e "RUNNING_IN_DOCKER=1") 
+  docker_args=(run -i --rm=true -e "RUNNING_IN_DOCKER=1")
   [[ -t 0 ]] && docker_args+=("-t")
   [[ -n $DL_DIR ]] && docker_args+=(-e DL_DIR="$DL_DIR" -v "${DL_DIR}:${DL_DIR}")
   [[ -d "$deploy_directory" ]] && docker_args+=(-v "${deploy_directory}:${deploy_directory}")
@@ -472,6 +481,21 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   docker_args+=(--workdir="${PLATFORM_FOLDER}")
   docker_args+=(-e "BUILD_COMMAND=$BUILD_COMMAND")
   docker_args+=(-e "BUILD_TAG=$BUILD_TAG")
+
+  # Pass user-specified passthrough env vars into Docker
+  # We'll attempt to export them if they're set on the host
+  if [ -n "$USER_PASSTHROUGH_VARS" ]; then
+    # Split by space
+    read -r -a passthrough_array <<< "$USER_PASSTHROUGH_VARS"
+    for var in "${passthrough_array[@]}"; do
+      if [ -n "${!var}" ]; then
+        docker_args+=(-e "${var}=${!var}")
+      else
+        echo "⚠️ Warning: $var is listed in --env-passthrough but not set on the host."
+      fi
+    done
+  fi
+
   docker_args+=("$CONTAINER_NAME")
   docker_args+=("$SCRIPT_NAME" "$@")
   docker "${docker_args[@]}" || { echo "🔴 docker ${docker_args[*]} failed" ; exit 1 ; }
@@ -498,7 +522,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
     fi
   fi
 
-  if [[ -n "$image_server" ]]; then 
+  if [[ -n "$image_server" ]]; then
     sync_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
 
     if [ $? -ne 0 ]; then
@@ -541,6 +565,13 @@ echo "⏳ Building ${recipes[*]} for ${machines[*]}"
 
 for MACHINE in "${machines[@]}"; do
   export MACHINE MANIFEST_REPO MANIFEST_BRANCH MANIFEST_FILE DISTRO BUILD_TAG
+  # Also export USER_PASSTHROUGH_VARS so they're visible to BitBake
+  if [ -n "$USER_PASSTHROUGH_VARS" ]; then
+    # Just export them so BitBake sees them
+    for var in $USER_PASSTHROUGH_VARS; do
+      export "$var"
+    done
+  fi
 
   # Setup bitbake, leaves us in build folder
   cd "$YOCTO_FOLDER"
@@ -567,5 +598,3 @@ for MACHINE in "${machines[@]}"; do
 
 done
 exit 0
-
-
