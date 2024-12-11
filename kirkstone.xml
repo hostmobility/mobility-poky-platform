@@ -17,24 +17,24 @@
   <remote fetch="https://git.openembedded.org"     name="python2"/>
   <remote fetch="https://git.toradex.com" name="tdx"/>
 
-  <project revision="e139e9d0ce343ba77a09601a976c92acd562c9df" remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" />
+  <project revision="ccf5b0a8896eba43f59151885aeb30b6cfc0573f" remote="yocto" upstream="kirkstone" name="poky" path="sources/poky" />
   <project revision="3e9ef23d98aa842cf84251a27c9b8dde8925ea61" remote="yocto" upstream="kirkstone" name="meta-freescale" path="sources/meta-freescale" />
   <project revision="d5bbb487b2816dfc74984a78b67f7361ce404253" remote="freescale" upstream="kirkstone" name="meta-freescale-distro" path="sources/meta-freescale-distro" />
 
-  <project revision="0560b848996a0feb410a8cd8ca07c60fe2f3b5bc" remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" />
+  <project revision="4ad41baed6236d499804cbfc4f174042d84fce97" remote="oe" upstream="kirkstone" name="meta-openembedded" path="sources/meta-openembedded" />
 
   <project revision="f02882e2aa9279ca7becca8d0cedbffe88b5a253" remote="python2" upstream="kirkstone"   name="meta-python2"            path="sources/meta-python2"/>
 
-  <project revision="69dee99abd95f65198285cc36608f155be133d34" remote="hm" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project revision="747c4b4f978ca27eead5fc2f3f254b5f18fd62ef" remote="hm" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
+  <project revision="bd57584142bb32a4ee025206830ec65fd46c4cad" remote="hm" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project revision="5493d5f15c67ad8658dadc209bd23dc19e7430fc" remote="hm" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro" />
   <project revision="502be8134cd55d4d3646f43f47fd2d6b233c71bf" remote="hmssh" name="mx4-deploy.git" path="mx4-deploy" />
   
   <project revision="312ff1c39b1bf5d35c0321e873417eb013cea477" remote="clang" name="meta-clang" path="sources/meta-clang" />
   <project revision="c7651db9417d0694a05438967ca24b26ec69f9e1" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
-  <project revision="8b356b91ed0d4bcab72350a2ddcef880f4fa5c26" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
+  <project revision="a055d7dcafc58855081a5eac9a46b93b9b51012b" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
   <project revision="43c0642ed901ab816d350d04bd3b9526f46cde5d" name="meta-imx" path="sources/meta-imx" remote="nxp-imx" upstream="kirkstone-5.15.71-2.2.0"/>
   <project revision="644ebf220245bdc06e7696ccc90acc97a0dd2566" remote="QT5" upstream="kirkstone"   name="meta-qt5" path="sources/meta-qt5"/>
-  <project revision="3521b91de70e012e3508692682e89fcd264ed9eb" remote="sbabic" upstream="kirkstone"   name="meta-swupdate" path="sources/meta-swupdate"/>
+  <project revision="6918be849ddf1fed5b7a0173e51c7a136e8d4101" remote="sbabic" upstream="kirkstone"   name="meta-swupdate" path="sources/meta-swupdate"/>
   <project revision="aee9a7a30d133861b21bdab441d0c91828f6f690" remote="variscite" upstream="kirkstone"   name="meta-variscite-hab" path="sources/meta-variscite-hab"/>
   <project revision="44663efe7aefeced27fe70fb9aa50bb6848bd78f" remote="variscite" upstream="kirkstone"   name="meta-variscite-bsp" path="sources/meta-variscite-bsp"/>
   <project revision="ff423989697e6f4dde530d45e4afad15e42196a8" remote="variscite" upstream="kirkstone"   name="meta-variscite-sdk" path="sources/meta-variscite-sdk">
@@ -42,6 +42,9 @@
   </project>
   <project revision="1c107bc6dc6437be87fbcd6a91528dba316384cf" remote="freescale" upstream="kirkstone"   name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
   <project revision="9e94b64bdfebcf7bfdf2af6447cec866a4efa814" remote="freescale" upstream="kirkstone"   name="meta-freescale-3rdparty" path="sources/meta-freescale-3rdparty"/>
+  <project revision="260e3adc2bf322f52d81c0642c825088a88bb051" remote="yocto" upstream="kirkstone" name="meta-arm" path="sources/meta-arm"/>
+  <project revision="c57b63147d2ac0dde16e43f7407d0ff50e62efdb" remote="yocto" upstream="kirkstone" name="meta-ti" path="sources/meta-ti"/>
+
   <project revision="260e3adc2bf322f52d81c0642c825088a88bb051" remote="yocto" upstream="kirkstone" name="meta-arm" path="sources/meta-arm"/>
   <project revision="c57b63147d2ac0dde16e43f7407d0ff50e62efdb" remote="yocto" upstream="kirkstone" name="meta-ti" path="sources/meta-ti"/>
 
