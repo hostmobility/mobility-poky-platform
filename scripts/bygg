@@ -488,8 +488,13 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
     # Split by space
     read -r -a passthrough_array <<< "$USER_PASSTHROUGH_VARS"
     for var in "${passthrough_array[@]}"; do
+      if [[ "$var" == "DL_DIR" ]]; then
+        echo "⚠️ Skipping system variable $var"
+        continue
+      fi
+
       if [ -n "${!var}" ]; then
-        docker_args+=(-e "${var}=${!var}")
+        docker_args+=(-e "${var}=${!var//\$/\\\$}")
       else
         echo "⚠️ Warning: $var is listed in --env-passthrough but not set on the host."
       fi
