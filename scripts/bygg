@@ -237,6 +237,7 @@ init_yocto_build()
   if [ -n "$USER_PASSTHROUGH_VARS" ]; then
     export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS $USER_PASSTHROUGH_VARS"
   fi
+  echo "👷 Now source $POKYFOLDER/oe-init-build-env to $build_folder to start bitbake!\n"
 
   source "$POKYFOLDER/oe-init-build-env" "$build_folder"
 
