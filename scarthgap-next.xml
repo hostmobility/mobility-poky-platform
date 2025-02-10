@@ -24,9 +24,9 @@
   
   <project revision="8c77b427408db01b8de4c04bd3d247c13c154f92" upstream="scarthgap" remote="clang" name="meta-clang" path="sources/meta-clang" />
   <project revision="0c43dd66e951624415516bdefcd7a7a8a641fbc3" upstream="scarthgap" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
-  <project revision="	1793a1b8fc92cf8688c72b7fd4181e3a2f5ade55" name="meta-lts-mixins" path="sources/meta-lts-mixins" remote="yocto" upstream="scarthgap/rust"/>
+  <project revision="1793a1b8fc92cf8688c72b7fd4181e3a2f5ade55" name="meta-lts-mixins" path="sources/meta-lts-mixins" remote="yocto" upstream="scarthgap/rust"/>
 
-  <project revision="	79673f5c67b022e7aadeb231872470295e5b9188" upstream="scarthgap" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
+  <project revision="79673f5c67b022e7aadeb231872470295e5b9188" upstream="scarthgap" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
 
   <project remote="QT5" upstream="scarthgap"   name="meta-qt5"                path="sources/meta-qt5"/>
   <project remote="sbabic" upstream="scarthgap"   name="meta-swupdate"           path="sources/meta-swupdate"/>
