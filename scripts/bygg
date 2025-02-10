@@ -107,8 +107,8 @@ parse_options()
     esac
   done
 
-  # Default distro to poky if it is undefined
-  : "${DISTRO:=poky}"
+  # Default distro to hm-generic-console if it is undefined
+  : "${DISTRO:=hm-generic-console}"
 
   # Check if MANIFEST_FILE is set and print usage if it's not
   if [[ -z "$MANIFEST_FILE" ]]; then
