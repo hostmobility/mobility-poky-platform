@@ -278,7 +278,7 @@ get_platform_details()
   repo forall -c 'echo $REPO_PATH\nLREV: $REPO_LREV\nRREV: $REPO_RREV; git diff --stat -b $REPO_LREV..HEAD ; echo -n "Commit: " ; git rev-parse HEAD ; echo -n "Uncommited changes: " ; git status -b -s ; git diff --stat -b ; echo '
 )
 
-CONTAINER_BASE="crops/poky:ubuntu-20.04"
+CONTAINER_BASE="crops/poky:ubuntu-22.04"
 CONTAINER_NAME="bygg-container-${CONTAINER_BASE}"
 DOCKER_BUILD_FLAGS="--quiet"
 build_container()
@@ -287,7 +287,7 @@ build_container()
   docker build $DOCKER_BUILD_FLAGS -t "$CONTAINER_NAME" - <<DockerFileHere
   from ${CONTAINER_BASE}
   USER root
-  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libgnutls28-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools python-is-python3
+  RUN apt-get update && \apt-get install -y --no-install-recommends libncurses-dev rsync bc libtinfo5 libgnutls28-dev libssl-dev zstd liblz4-tool mtools parted dosfstools u-boot-tools python-is-python3
   RUN wget http://commondatastorage.googleapis.com/git-repo-downloads/repo && mv repo /usr/bin/ && chmod a+wx /usr/bin/repo
   RUN ssh-keyscan -t rsa github.com >> /etc/ssh/ssh_known_hosts
   RUN ssh-keyscan -t rsa gitlab.com >> /etc/ssh/ssh_known_hosts

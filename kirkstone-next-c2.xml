@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+
+  <default sync-j="4" revision="kirkstone"/>
+
+  <remote fetch="https://github.com/hostmobility/" name="hm-c2"/>
+  <remote fetch="https://git.yoctoproject.org/git" name="yocto-lts-mixins"/>
+
+  <include name="kirkstone-next.xml" />
+  <remove-project name="meta-mobility-poky-distro"/>
+
+  <project revision="main" remote="hmssh" name="meta-mobility-c2-distro" path="sources/meta-mobility-c2-distro"/>
+  <project revision="kirkstone/rust" remote="yocto-lts-mixins" name="meta-lts-mixins" path="sources/meta-lts-mixins"/>
+
+</manifest>
