@@ -430,18 +430,27 @@ check_deploy_location()
 
   IFS=":" read -ra destination_parts <<< "$2"
   if [[ -n ${destination_parts[1]} ]]; then
-      ssh "${destination_parts[0]}" "[[ -w \"${destination_parts[1]}\" || -w \"\$(dirname \"${destination_parts[1]}\")\" ]]" || {
-          echo "Error: No write permission on ${destination_parts[1]}"
-          return 1
-      }
+    path_parts=($(echo "${destination_parts[1]}" | tr "/" "\n"))
   else
-      [[ -w "${destination_parts[0]}" || -w "$(dirname "${destination_parts[0]}")" ]] || {
-          echo "Error: No write permission on ${destination_parts[0]}"
-          return 1
-      }
+    path_parts=($(echo "${destination_parts[0]}" | tr "/" "\n"))
   fi
+  # Iterate through each directory level starting with the longest path. In case there are multiple directories that will be created later on with mkdir -p we need to find where it is possible to write.
+  for ((i=${#path_parts[@]}; i>=1; i--)); do
+      current_path=$(IFS="/"; echo "${path_parts[*]:0:i}")
 
-  return 0
+      if [[ -n ${destination_parts[1]} ]]; then
+          # Remote destination - check write permission on the current directory level
+          ssh "${destination_parts[0]}" "[[ -w \"${current_path}\" || -w \"\$(dirname \"${current_path}\")\" ]]" && return 0
+      else
+          # Local destination - check write permission on the current directory level
+          if [[ -w "${current_path}" || -w "$(dirname "${current_path}")" ]]; then
+              return 0
+          fi
+      fi
+  done
+
+  echo "Error: No write permission on path: $2."
+  return 1
 }
 
 sync_images()
