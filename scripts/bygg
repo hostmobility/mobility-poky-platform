@@ -528,7 +528,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
 
   # Check destination and access to that location is ok before build the whole image
   if [[ -n "$image_server" ]]; then
-    echo  "⏳Check destination and access to that location is ok before build the whole image"
+    echo  "⏳Check destination and access before building the whole image"
     check_deploy_location "$YOCTO_FOLDER" "$image_server" "$img_includes"
 
     if [ $? -ne 0 ]; then
