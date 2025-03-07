@@ -434,15 +434,13 @@ check_deploy_location()
   else
     path_parts=($(echo "${destination_parts[0]}" | tr "/" "\n"))
   fi
-  # Iterate through each directory level start with the longest path. In case there is multiple directories that will be created later on with mkdir -p we need to find where it is possible to write.
+  # Iterate through each directory level starting with the longest path. In case there are multiple directories that will be created later on with mkdir -p we need to find where it is possible to write.
   for ((i=${#path_parts[@]}; i>=1; i--)); do
       current_path=$(IFS="/"; echo "${path_parts[*]:0:i}")
 
       if [[ -n ${destination_parts[1]} ]]; then
           # Remote destination - check write permission on the current directory level
-          ssh "${destination_parts[0]}" "[[ -w \"${current_path}\" || -w \"\$(dirname \"${current_path}\")\" ]]" && {
-                return 0
-          }
+          ssh "${destination_parts[0]}" "[[ -w \"${current_path}\" || -w \"\$(dirname \"${current_path}\")\" ]]" && return 0
       else
           # Local destination - check write permission on the current directory level
           if [[ -w "${current_path}" || -w "$(dirname "${current_path}")" ]]; then
