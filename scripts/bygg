@@ -387,18 +387,18 @@ EOF
   return $docker_exit_code
 }
 
-sync_packages()
+deploy_packages()
 {
   local -r release_codename=$(basename "$MANIFEST_FILE" .xml)
   local packages_path="$DISTRO/$release_codename" # e.g. poky/kirkstone
 
   if [[ -z $1 ]]; then
-    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages yocto folder needed as first argument"
+    >&2 echo "🔴 Syntax error in ${FUNCNAME[0]} deploy_packages, yocto folder needed as first argument"
     return 1
   fi
 
   if [[ -z $2 ]]; then
-    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages destination needed as second argument"
+    >&2 echo "🔴 Syntax error in ${FUNCNAME[0]} deploy_packages, destination needed as second argument"
     return 1
   fi
 
@@ -419,12 +419,12 @@ sync_packages()
 check_deploy_location()
 {
   if [[ -z $1 ]]; then
-    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync packages yocto folder needed as first argument"
+    >&2 echo "🔴 Syntax error in ${FUNCNAME[0]} check_deploy_location, yocto folder needed as first argument"
     return 1
   fi
 
   if [[ -z $2 ]]; then
-    >&2 echo "🔴 Error in ${FUNCNAME[0]} sync image destination needed as second argument"
+    >&2 echo "🔴Syntax error in ${FUNCNAME[0]}  check_deploy_location, destination needed as second argument"
     return 1
   fi
 
@@ -453,7 +453,7 @@ check_deploy_location()
   return 1
 }
 
-sync_images()
+deploy_images()
 {
   # Create destination directory. Interpret part before an eventual ":" as
   # a server name so run mkdir using ssh in that case.
@@ -563,19 +563,19 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   done
 
   if [[ -n "$deploy_directory" ]]; then
-    sync_packages "$YOCTO_FOLDER" "$deploy_directory"
+    deploy_packages "$YOCTO_FOLDER" "$deploy_directory"
 
     if [ $? -ne 0 ]; then
-      echo "🔴 sync_packages for deploy-packages (${deploy_directory}) failed"
+      echo "🔴 --deploy-packages with destination path (${deploy_directory}) failed to upload the files"
       exit 1
     fi
   fi
 
   if [[ -n "$image_server" ]]; then
-    sync_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
+    deploy_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
 
     if [ $? -ne 0 ]; then
-      echo "🔴 sync_images for deploy-images (${image_server}) failed"
+      echo "🔴 --deploy-images with destination path(${image_server}) failed to upload the files"
       exit 1
     fi
   fi
