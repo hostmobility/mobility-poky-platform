@@ -96,7 +96,7 @@ parse_options()
       '-m'|'--machine') machines+=("$2"); shift 2;;
       '-n'|'--skip-init-build') SKIP_INIT_BUILD=1; shift;;
       '-o'|'--populate-sdk') populate_sdk="$2"; shift;;
-      '-p'|'--deploy-packages') deploy_directory="$2"; shift 2;;
+      '-p'|'--deploy-packages') deploy_packages="$2"; shift 2;;
       '-r'|'--recipe') recipes+=("$2"); shift 2;;
       '-s'|'--repo-sync') DO_SYNC=1; shift;;
       '-t'|'--build-tag') BUILD_TAG="$2"; shift 2;;
@@ -500,7 +500,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   docker_args=(run -i --rm=true -e "RUNNING_IN_DOCKER=1")
   [[ -t 0 ]] && docker_args+=("-t")
   [[ -n $DL_DIR ]] && docker_args+=(-e DL_DIR="$DL_DIR" -v "${DL_DIR}:${DL_DIR}")
-  [[ -d "$deploy_directory" ]] && docker_args+=(-v "${deploy_directory}:${deploy_directory}")
+  [[ -d "$deploy_packages" ]] && docker_args+=(-v "${deploy_packages}:${deploy_packages}")
   [[ -d "$image_server" ]] && docker_args+=(-v "${image_server}:${image_server}")
   docker_args+=(-e "SSH_AUTH_SOCK=/ssh.socket")
   docker_args+=(-v "$SSH_AUTH_SOCK:/ssh.socket")
@@ -544,6 +544,16 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
       exit 1
     fi
   fi
+
+  if [[ -n "$deploy_packages" ]]; then
+    echo  "⏳Check destination and access before building ipk packages"
+    check_deploy_location "$YOCTO_FOLDER" "$deploy_packages"
+
+    if [ $? -ne 0 ]; then
+      echo "🔴 check_deploy_location for deploy-images (${deploy_packages}) failed, check additional output before this."
+      exit 1
+    fi
+  fi
   # Start building image(s)
   docker_args+=("$CONTAINER_NAME")
   docker_args+=("$SCRIPT_NAME" "$@")
@@ -562,11 +572,11 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
     done
   done
 
-  if [[ -n "$deploy_directory" ]]; then
-    deploy_packages "$YOCTO_FOLDER" "$deploy_directory"
+  if [[ -n "$deploy_packages" ]]; then
+    deploy_packages "$YOCTO_FOLDER" "$deploy_packages"
 
     if [ $? -ne 0 ]; then
-      echo "🔴 --deploy-packages with destination path (${deploy_directory}) failed to upload the files"
+      echo "🔴 --deploy-packages with destination path (${deploy_packages}) failed to upload the files"
       exit 1
     fi
   fi
@@ -638,7 +648,7 @@ for MACHINE in "${machines[@]}"; do
   [[ -n "${recipes[0]}" ]] && bitbake "${recipes[@]}"
 
   # Update package indices if we are syncing to server later.
-  [[ -n "$deploy_directory" ]] && bitbake package-index
+  [[ -n "$deploy_packages" ]] && bitbake package-index
 
   # Create t30_hmupdate.img, vf_hmupdate.img etc.
   for image in "${images[@]}"; do
