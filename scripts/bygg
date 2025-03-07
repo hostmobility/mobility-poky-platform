@@ -536,7 +536,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
       exit 1
     fi
   fi
-  # Start build image(s)
+  # Start building image(s)
   docker_args+=("$CONTAINER_NAME")
   docker_args+=("$SCRIPT_NAME" "$@")
   docker "${docker_args[@]}" || { echo "🔴 docker ${docker_args[*]} failed" ; exit 1 ; }
