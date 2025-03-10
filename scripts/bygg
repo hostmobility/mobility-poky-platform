@@ -243,6 +243,10 @@ init_yocto_build()
   export PLATFORM_VERSION
   PLATFORM_VERSION_DETAILS="$(get_platform_details)"
   export PLATFORM_VERSION_DETAILS
+
+  #Change DEPLOY_DIR_EXTRA_IMAGE (meta-mobility-poky-distro:classes/deploy_mobility.bbclass)
+  DEPLOY_DIR_EXTRA_IMAGE="$build_folder/deploy-mobility/images"
+  export DEPLOY_DIR_EXTRA_IMAGE
 }
 export -f init_yocto_build
 
@@ -362,7 +366,7 @@ EOF
   docker_exit_code=$?
 
   # Copy created e.g. release tar.gz that include *_hmupdate.img back to Yocto deploy dir to keep them.
-  hmupdate_archive="$YOCTO_FOLDER/build/tmp/deploy/images/${MACHINE}/hmupdate-${image}"
+  hmupdate_archive="$YOCTO_FOLDER/$DEPLOY_DIR_EXTRA_IMAGE/${MACHINE}/hmupdate-${image}"
   if [[ -d "$hmupdate_archive" ]]; then
     rm -r "$hmupdate_archive"
     if (( $? != 0 )); then
@@ -465,7 +469,7 @@ deploy_images()
   fi
 
   if [[ -z $3 ]]; then
-    rsync --min-size=1B -avrm "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+    rsync --min-size=1B -avrm "${1}"/$DEPLOY_DIR_EXTRA_IMAGE/ "${2}/" || return 1
   else
     pattern=${3#"'"}   # Remove leading single quote
     pattern=${pattern%"'"}   # Remove trailing single quote
@@ -477,7 +481,7 @@ deploy_images()
       include_pattern+=(--include="$inc")
     done
 
-    rsync --min-size=1B -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+    rsync --min-size=1B -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/$DEPLOY_DIR_EXTRA_IMAGE/images/ "${2}/" || return 1
   fi
 
   return 0
@@ -570,6 +574,14 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
         fi
       fi
     done
+    if [[ -n "$image_server" ]]; then
+      deploy_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
+
+      if [ $? -ne 0 ]; then
+        echo "🔴 --deploy-images with destination path(${image_server}) failed to upload the files"
+        exit 1
+      fi
+    fi
   done
 
   if [[ -n "$deploy_packages" ]]; then
@@ -580,17 +592,6 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
       exit 1
     fi
   fi
-
-  if [[ -n "$image_server" ]]; then
-    deploy_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
-
-    if [ $? -ne 0 ]; then
-      echo "🔴 --deploy-images with destination path(${image_server}) failed to upload the files"
-      exit 1
-    fi
-  fi
-
-
   exit 0
 fi
 
