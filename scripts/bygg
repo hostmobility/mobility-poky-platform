@@ -34,7 +34,6 @@ Options:
   -i, --image IMAGE                        Specify the BSP image to use for the build. Multiple images are supported (--image image1 --image image2).
                                            Can be combined with 'recipe' option or skipped if 'recipe' option or BUILD_COMMAND is used.
 
-  -n, --skip-init-build                    Setup bitbake. Leaves us in build folder.
   -o, --populate-sdk                       Populate the SDK after the build.
   -p, --deploy-packages DEST               Deploy packages to the specified remote or local directory, e.g. user@server:/srv/packages or /tmp/packages.
                                            This will deploy ipk packages below distro/(release_codename|manifest file).
@@ -77,7 +76,7 @@ EOF
 
 parse_options()
 {
-  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:,env-passthrough:'
+  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,templateconf:,env-passthrough:'
   SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n,y:,p:,z:,e:'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
@@ -94,7 +93,6 @@ parse_options()
       '-h'|'--help') usage; ;;
       '-i'|'--image') images+=("$2"); shift 2;;
       '-m'|'--machine') machines+=("$2"); shift 2;;
-      '-n'|'--skip-init-build') SKIP_INIT_BUILD=1; shift;;
       '-o'|'--populate-sdk') populate_sdk="$2"; shift;;
       '-p'|'--deploy-packages') deploy_packages="$2"; shift 2;;
       '-r'|'--recipe') recipes+=("$2"); shift 2;;
@@ -638,7 +636,7 @@ for MACHINE in "${machines[@]}"; do
 
   # Setup bitbake, leaves us in build folder
   cd "$YOCTO_FOLDER"
-  [[ -z $SKIP_INIT_BUILD ]] && init_yocto_build
+  init_yocto_build
 
   # Call custom build command first if it is defined
   if [ -n "$BUILD_COMMAND" ]; then
