@@ -33,6 +33,11 @@ Options:
   -h, --help                               Display this help message and exit.
   -i, --image IMAGE                        Specify the BSP image to use for the build. Multiple images are supported (--image image1 --image image2).
                                            Can be combined with 'recipe' option or skipped if 'recipe' option or BUILD_COMMAND is used.
+  -k, --build-deploy-dir                   Specify where to find the build (bitbake) images.
+                                           By default it points to deploy-mobility/images.
+                                           This option requires the use of deploy_mobility.bbclass or similar in the distro function (if not the --deploy-images option will no longer work).
+                                           If you want the old path add tmp/deploy/images (this should work for multiple machines)
+                                           Note: Restricted to the --build-folder name and relative path.
 
   -n, --skip-init-build                    Setup bitbake. Leaves us in build folder.
   -o, --populate-sdk                       Populate the SDK after the build.
@@ -77,8 +82,13 @@ EOF
 
 parse_options()
 {
-  LONGOPTIONS='build-tag:,build-folder:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,skip-init-build,templateconf:,env-passthrough:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,m:,o,f:,r:,s,n,y:,p:,z:,e:'
+  #default values if not used.
+  build_deploy_dir="deploy-mobility/images"
+
+
+  LONGOPTIONS='build-tag:,build-folder:,build-deploy-dir:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,skip-init-build,templateconf:,env-passthrough:'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,k:,m:,o,f:,r:,s,n,y:,p:,z:,e:'
+
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
 
@@ -93,6 +103,7 @@ parse_options()
       '-g'|'--skip-docker-pull') skip_docker_pull=1; shift;;
       '-h'|'--help') usage; ;;
       '-i'|'--image') images+=("$2"); shift 2;;
+      '-k'|'--build-deploy-dir') build_deploy_dir="$2"; shift 2;;
       '-m'|'--machine') machines+=("$2"); shift 2;;
       '-n'|'--skip-init-build') SKIP_INIT_BUILD=1; shift;;
       '-o'|'--populate-sdk') populate_sdk="$2"; shift;;
@@ -237,8 +248,12 @@ init_yocto_build()
     grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
   fi
 
+  # Change DEPLOY_DIR_EXTRA_IMAGE (meta-mobility-poky-distro:classes/deploy_mobility.bbclass)
+  DEPLOY_DIR_EXTRA_IMAGE=$build_deploy_dir
+  export DEPLOY_DIR_EXTRA_IMAGE
+  echo "DEPLOY_DIR_EXTRA_IMAGE=$DEPLOY_DIR_EXTRA_IMAGE"
   # Pass information about versions to bitbake
-  export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS"
+  export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS BUILD_TAG PLATFORM_VERSION PLATFORM_VERSION_DETAILS DEPLOY_DIR_EXTRA_IMAGE"
   PLATFORM_VERSION="$(git -C ../.repo/manifests rev-parse --short HEAD)"
   export PLATFORM_VERSION
   PLATFORM_VERSION_DETAILS="$(get_platform_details)"
@@ -362,7 +377,8 @@ EOF
   docker_exit_code=$?
 
   # Copy created e.g. release tar.gz that include *_hmupdate.img back to Yocto deploy dir to keep them.
-  hmupdate_archive="$YOCTO_FOLDER/build/tmp/deploy/images/${MACHINE}/hmupdate-${image}"
+  build_folder=$(get_build_folder "${wanted_build_folder}")
+  hmupdate_archive="$YOCTO_FOLDER/$build_folder/$build_deploy_dir/${MACHINE}/hmupdate-${image}"
   if [[ -d "$hmupdate_archive" ]]; then
     rm -r "$hmupdate_archive"
     if (( $? != 0 )); then
@@ -464,8 +480,9 @@ deploy_images()
     mkdir -p "${destination_parts[0]}/"
   fi
 
+  build_folder=$(get_build_folder "${wanted_build_folder}")
   if [[ -z $3 ]]; then
-    rsync --min-size=1B -avrm "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+    rsync --min-size=1B -avrm "${1}"/$build_folder/$build_deploy_dir/${MACHINE}/* "${2}/" || return 1
   else
     pattern=${3#"'"}   # Remove leading single quote
     pattern=${pattern%"'"}   # Remove trailing single quote
@@ -476,8 +493,7 @@ deploy_images()
     for inc in "${deploy_includes[@]}"; do
       include_pattern+=(--include="$inc")
     done
-
-    rsync --min-size=1B -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/build*/tmp/deploy/images/ "${2}/" || return 1
+    rsync --min-size=1B -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/$build_folder/$build_deploy_dir/${MACHINE}/* "${2}/" || return 1
   fi
 
   return 0
@@ -570,6 +586,14 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
         fi
       fi
     done
+    if [[ -n "$image_server" ]]; then
+      deploy_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
+
+      if [ $? -ne 0 ]; then
+        echo "🔴 --deploy-images with destination path ${image_server}: failed to upload the files"
+        exit 1
+      fi
+    fi
   done
 
   if [[ -n "$deploy_packages" ]]; then
@@ -580,17 +604,6 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
       exit 1
     fi
   fi
-
-  if [[ -n "$image_server" ]]; then
-    deploy_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
-
-    if [ $? -ne 0 ]; then
-      echo "🔴 --deploy-images with destination path(${image_server}) failed to upload the files"
-      exit 1
-    fi
-  fi
-
-
   exit 0
 fi
 
