@@ -84,7 +84,7 @@ parse_options()
   #default values if not used.
   build_deploy_dir="deploy-mobility/images"
 
-  LONGOPTIONS='build-tag:,build-folder:,build-deploy-dir:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,templateconf:,env-passthrough:'
+  LONGOPTIONS='build-tag:,build-folder:,build-deploy-dir:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,templateconf:,env-passthrough:'
   SHORTOPTIONS='t:,b:,c,d:,g,h,i:,k:,m:,o,f:,r:,s,y:,p:,z:,e:'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
