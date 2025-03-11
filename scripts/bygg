@@ -39,7 +39,6 @@ Options:
                                            If you want the old path add tmp/deploy/images (this should work for multiple machines)
                                            Note: Restricted to the --build-folder name and relative path.
 
-  -n, --skip-init-build                    Setup bitbake. Leaves us in build folder.
   -o, --populate-sdk                       Populate the SDK after the build.
   -p, --deploy-packages DEST               Deploy packages to the specified remote or local directory, e.g. user@server:/srv/packages or /tmp/packages.
                                            This will deploy ipk packages below distro/(release_codename|manifest file).
@@ -85,10 +84,8 @@ parse_options()
   #default values if not used.
   build_deploy_dir="deploy-mobility/images"
 
-
-  LONGOPTIONS='build-tag:,build-folder:,build-deploy-dir:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,skip-init-build,templateconf:,env-passthrough:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,k:,m:,o,f:,r:,s,n,y:,p:,z:,e:'
-
+  LONGOPTIONS='build-tag:,build-folder:,build-deploy-dir:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,templateconf:,env-passthrough:'
+  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,k:,m:,o,f:,r:,s,y:,p:,z:,e:'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
 
@@ -105,7 +102,6 @@ parse_options()
       '-i'|'--image') images+=("$2"); shift 2;;
       '-k'|'--build-deploy-dir') build_deploy_dir="$2"; shift 2;;
       '-m'|'--machine') machines+=("$2"); shift 2;;
-      '-n'|'--skip-init-build') SKIP_INIT_BUILD=1; shift;;
       '-o'|'--populate-sdk') populate_sdk="$2"; shift;;
       '-p'|'--deploy-packages') deploy_packages="$2"; shift 2;;
       '-r'|'--recipe') recipes+=("$2"); shift 2;;
@@ -647,7 +643,7 @@ for MACHINE in "${machines[@]}"; do
 
   # Setup bitbake, leaves us in build folder
   cd "$YOCTO_FOLDER"
-  [[ -z $SKIP_INIT_BUILD ]] && init_yocto_build
+  init_yocto_build
 
   # Call custom build command first if it is defined
   if [ -n "$BUILD_COMMAND" ]; then
