@@ -332,7 +332,7 @@ cd mx4-deploy
 # Clean up old directories. make_system.sh requires it!
 sudo rm -rf deploy-*
 
-DEPLOY_DIR=../${BUILD_FOLDER}/tmp/deploy/images/$MACHINE
+DEPLOY_DIR=../${BUILD_PATH}/$MACHINE
 
 #Remove extra dtb symlink for example *-mx4-t30-mx4-t30.dtb so only *-mx4-t30.dtb is left.
 dtb=$(find "$DEPLOY_DIR/" -name "*-${MACHINE}-${MACHINE}.dtb")
@@ -366,7 +366,7 @@ EOF
       -e MACHINE="$MACHINE" \
       -e SHORT_MACHINE="$short_machine" \
       -e TARGET_IMAGE="$image" \
-      -e BUILD_FOLDER="$build_folder" \
+      -e BUILD_PATH="$build_folder/$build_deploy_dir" \
       hostmobility/buildplatform-mx4:2.0 \
       bash ./build_mx4-v2.sh
 
