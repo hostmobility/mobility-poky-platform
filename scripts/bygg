@@ -28,7 +28,7 @@ Options:
   -b, --build-folder PATH                  Specify the directory for the build output. Defaults to build.
   -c, --delete-conf                        Delete existing configuration files in the build directory. Recommended if you build multiple different machines.
   -d, --distro DISTRO                      Specify the target poky distro, e.g. poky or fslc-wayland. Defaults to poky.
-  -e, --env-passthrough                    Pass through environment variables such as access tokens and passwords.
+  -e, --env-passthrough                    Pass through environment variables such as access tokens and passwords (separate tokens with ',').
   -g, --skip-docker-pull                   Skip update of docker container.
   -h, --help                               Display this help message and exit.
   -i, --image IMAGE                        Specify the BSP image to use for the build. Multiple images are supported (--image image1 --image image2).
@@ -95,7 +95,7 @@ parse_options()
       '-b'|'--build-folder') wanted_build_folder="$2"; shift 2;;
       '-c'|'--delete-conf') DELETE_CONF="y"; shift;;
       '-d'|'--distro') DISTRO="$2"; shift 2;;
-      '-e'|'--env-passthrough') USER_PASSTHROUGH_VARS="$2"; shift 2;;
+      '-e'|'--env-passthrough') USER_PASSTHROUGH_VARS="$2"; shift 2;; # separation by space does not work
       '-f'|'--manifest-file') MANIFEST_FILE="$2"; shift 2;;
       '-g'|'--skip-docker-pull') skip_docker_pull=1; shift;;
       '-h'|'--help') usage; ;;
@@ -235,7 +235,10 @@ init_yocto_build()
   # If user provided env vars to pass through, add them now
   # for example: USER_PASSTHROUGH_VARS="GITLAB_ACCESS_TOKEN ANOTHER_ENV_VAR"
   if [ -n "$USER_PASSTHROUGH_VARS" ]; then
-    export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS $USER_PASSTHROUGH_VARS"
+    IFS=',' read -r -a passthrough_array <<< "$USER_PASSTHROUGH_VARS"
+    for var in "${passthrough_array[@]}"; do
+      export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS $var"
+    done
   fi
 
   source "$POKYFOLDER/oe-init-build-env" "$build_folder"
@@ -527,8 +530,8 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
     echo "Debug: User passed env vars to pass through: $USER_PASSTHROUGH_VARS"
 
     # Split the space-separated variable list into an array
-    read -r -a passthrough_array <<< "$USER_PASSTHROUGH_VARS"
-
+    IFS=',' read -r -a passthrough_array <<< "$USER_PASSTHROUGH_VARS"
+    
     for var in "${passthrough_array[@]}"; do
       # Debugging: Print the variable name and its value
       echo "Debug: Processing variable '$var' with value '${!var}'"
@@ -636,7 +639,8 @@ for MACHINE in "${machines[@]}"; do
   # Also export USER_PASSTHROUGH_VARS so they're visible to BitBake
   if [ -n "$USER_PASSTHROUGH_VARS" ]; then
     # Just export them so BitBake sees them
-    for var in $USER_PASSTHROUGH_VARS; do
+    IFS=',' read -r -a passthrough_array <<< "$USER_PASSTHROUGH_VARS"
+    for var in "${passthrough_array[@]}"; do
       export "$var"
     done
   fi
