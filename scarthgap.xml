@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+
+  <default sync-j="4" revision="scarthgap"/>
+
+  <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
+  <remote fetch="https://github.com/Freescale" name="freescale"/>
+  <remote fetch="https://github.com/openembedded" name="oe"/>
+  <remote fetch="https://github.com/meta-qt5"      name="QT5"/>
+  <remote fetch="https://github.com/sbabic"        name="sbabic"/>
+  <remote fetch="https://github.com/varigit"       name="variscite"/>
+  <remote fetch="https://github.com/kraj" name="clang"/>
+  <remote fetch="https://github.com/OSSystems" name="OSSystems"/>
+  <remote fetch="ssh://git@github.com/hostmobility/" name="hmssh"/>
+  <remote fetch="https://github.com/nxp-imx" name="nxp-imx"/>
+  <remote fetch="https://git.toradex.com" name="tdx"/>
+
+  <project remote="yocto" revision="2af52d4819aea9ca746f0671e2b2f8b5c7de2960" upstream="scarthgap" name="poky" path="sources/poky"/>
+
+  <project remote="oe" revision="67ad83dd7c2485dae0c90eac345007af6195b84d" upstream="scarthgap" name="meta-openembedded" path="sources/meta-openembedded"/>
+
+  <project revision="123207a91e684987414c259c42f8a0826c6810fb" remote="hmssh" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project revision="741e5202f6f90f329f2b22a44d7a1eb1885fbaac" remote="hmssh" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
+
+  <project revision="8c77b427408db01b8de4c04bd3d247c13c154f92" upstream="scarthgap" remote="clang" name="meta-clang" path="sources/meta-clang" />
+  <project revision="0c43dd66e951624415516bdefcd7a7a8a641fbc3" upstream="scarthgap" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
+  <project revision="1793a1b8fc92cf8688c72b7fd4181e3a2f5ade55" name="meta-lts-mixins" path="sources/meta-lts-mixins" remote="yocto" upstream="scarthgap/rust"/>
+
+  <project revision="79673f5c67b022e7aadeb231872470295e5b9188" upstream="scarthgap" name="meta-virtualization" path="sources/meta-virtualization" remote="yocto"/>
+
+  <project remote="QT5" revision="eb828418264a49b8d00035cb3d7b12fcea3be801" upstream="scarthgap"   name="meta-qt5"                path="sources/meta-qt5"/>
+  <project remote="sbabic" upstream="scarthgap"   name="meta-swupdate"           path="sources/meta-swupdate"/>
+
+  <project revision="a8fe9d22eaefc294f91096c6a32663e2f4ab3b10" remote="yocto" upstream="scarthgap" name="meta-arm" path="sources/meta-arm"/>
+  <project revision="4213a71a8eaed4a57562c0608f9ba29efc39eede" remote="yocto" upstream="scarthgap" name="meta-ti" path="sources/meta-ti"/>
+
+  <project revision="2a08f0b91aac0eafcb6a85084d3aa5c75922b9f3" remote="tdx" upstream="scarthgap-7.x.y" name="meta-toradex-bsp-common.git" path="sources/meta-toradex-bsp-common"/>
+  <project revision="7d721471477a5f55dd55427bb26607141dd6e380" remote="tdx" upstream="scarthgap-7.x.y" name="meta-toradex-ti.git" path="sources/meta-toradex-ti"/>
+
+  <project revision="dc1e544742ac99e2cba2f76baf7e0a8fda52ddf6" remote="freescale" upstream="master" name="meta-freescale-ml"       path="sources/meta-freescale-ml"/>
+  <project revision="3db229f14e8794238fa43b4066a6439fac506622" remote="yocto" upstream="scarthgap" name="meta-freescale" path="sources/meta-freescale" />
+  <project remote="freescale"   revision="8b61684f0b1ba8bacdf3a69d993445e9791d4932" name="meta-freescale-3rdparty"    path="sources/meta-freescale-3rdparty"     upstream="scarthgap"/>
+  <project remote="freescale"   revision="158cc55b6ee30d09957b380859dba52c0f6af68d" name="meta-freescale-distro"      path="sources/meta-freescale-distro" upstream="scarthgap"/>
+
+  <project revision="e06f8574e9abb3b98a60d5a8129d1ec4f79b4ca0" name="meta-imx" path="sources/meta-imx" remote="nxp-imx" upstream="scarthgap-6.6.23-2.0.0"/>
+
+  <project name="meta-variscite-bsp-common"  path="sources/meta-variscite-bsp-common"  remote="variscite"   revision="672d282f4fb4389d5102f213da0996887608b3fb" upstream="scarthgap_6.6.23-2.0.0_var01"/>
+  <project name="meta-variscite-bsp-imx"     path="sources/meta-variscite-bsp-imx"     remote="variscite"   revision="fd1bc1d5fdf7338fe8e5c41ebe63eaff057c15c9" upstream="scarthgap_6.6.23-2.0.0_var01"/>
+  <project name="meta-variscite-hab"         path="sources/meta-variscite-hab"         remote="variscite"   revision="c07e5a34c3d4375b01b3df349532f7aebfb32a31" upstream="scarthgap_6.6.23-2.0.0_var01"/>
+  <project name="meta-variscite-sdk-common"  path="sources/meta-variscite-sdk-common"  remote="variscite"   revision="4e04623c9f7400a9330b654a62e0561be032a91a" upstream="scarthgap_6.6.23-2.0.0_var01"/>
+  <project name="meta-variscite-sdk-imx"     path="sources/meta-variscite-sdk-imx"     remote="variscite"   revision="da7e0bd164f42fe1449eebdddc487af6b3809433" upstream="scarthgap_6.6.23-2.0.0_var01"/>
+
+</manifest>
