@@ -5,6 +5,7 @@
 
  <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
   <remote fetch="https://github.com/Freescale" name="freescale"/>
+  <remote fetch="https://github.com/meta-rust" name="rust"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
   <remote fetch="https://github.com/meta-qt5"      name="QT5"/>
   <remote fetch="https://github.com/sbabic"        name="sbabic"/>
@@ -31,6 +32,8 @@
   
   <project remote="clang" name="meta-clang" path="sources/meta-clang" />
   <project revision="935aabcec3c0e665e9a56aed4e5fdd18e9b169e5" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
+  <project revision="5389a347c66289c13ca2ab156625705a493580ea" remote="rust" name="meta-rust" path="sources/meta-rust" />
+  
   <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
   <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="refs/tags/rel_imx_5.15.52_2.1.0" upstream="kirkstone-5.15.52-2.1.0"/>
   <project remote="QT5" upstream="kirkstone"   name="meta-qt5"                path="sources/meta-qt5"/>
