@@ -515,6 +515,7 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
   [[ -n $DL_DIR ]] && docker_args+=(-e DL_DIR="$DL_DIR" -v "${DL_DIR}:${DL_DIR}")
   [[ -d "$deploy_packages" ]] && docker_args+=(-v "${deploy_packages}:${deploy_packages}")
   [[ -d "$image_server" ]] && docker_args+=(-v "${image_server}:${image_server}")
+  docker_args+=(--security-opt seccomp=unconfined)
   docker_args+=(-e "SSH_AUTH_SOCK=/ssh.socket")
   docker_args+=(-v "$SSH_AUTH_SOCK:/ssh.socket")
   docker_args+=(-v "${PLATFORM_FOLDER}:${PLATFORM_FOLDER}")
