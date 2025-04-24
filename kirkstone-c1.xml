@@ -7,7 +7,7 @@
   
   <include name="kirkstone.xml" />
 
-  <project revision="b978c06329909c8d5be1cc1d15cf8a0829d9c7db" remote="hm" name="meta-mobility-c1-distro" path="sources/meta-mobility-c1-distro"/>
+  <project revision="3d746677a91bc558dc44379f5d3e75c38a654757" remote="hm" name="meta-mobility-c1-distro" path="sources/meta-mobility-c1-distro"/>
 </manifest>
 
 
