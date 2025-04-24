@@ -30,7 +30,7 @@
   <project remote="hmssh" revision="master" name="mx4-deploy.git" path="mx4-deploy"/>
   
   <project remote="clang" name="meta-clang" path="sources/meta-clang" />
-  <project revision="935aabcec3c0e665e9a56aed4e5fdd18e9b169e5" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
+  <project revision="939024cfdfeda4e3cd59ff5861c3c519f9999159" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
   <project revision="kirkstone/rust" remote="yocto" name="meta-lts-mixins" path="sources/meta-lts-mixins"/>
   
   <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
