@@ -95,7 +95,7 @@ parse_options()
       '-b'|'--build-folder') wanted_build_folder="$2"; shift 2;;
       '-c'|'--delete-conf') DELETE_CONF="y"; shift;;
       '-d'|'--distro') DISTRO="$2"; shift 2;;
-      '-e'|'--env-passthrough') USER_PASSTHROUGH_VARS="$2"; shift 2;; # separation by space does not work
+      '-e'|'--env-passthrough') USER_PASSTHROUGH_VARS="$2"; shift 2;;
       '-f'|'--manifest-file') MANIFEST_FILE="$2"; shift 2;;
       '-g'|'--skip-docker-pull') skip_docker_pull=1; shift;;
       '-h'|'--help') usage; ;;
