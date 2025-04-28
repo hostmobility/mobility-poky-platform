@@ -3,7 +3,7 @@
 
   <default sync-j="4" revision="kirkstone"/>
 
- <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
+  <remote fetch="https://git.yoctoproject.org/git" name="yocto"/>
   <remote fetch="https://github.com/Freescale" name="freescale"/>
   <remote fetch="https://github.com/openembedded" name="oe"/>
   <remote fetch="https://github.com/meta-qt5"      name="QT5"/>
@@ -26,11 +26,13 @@
   <project remote="python2" upstream="kirkstone"   name="meta-python2"            path="sources/meta-python2"/>
 
   <project remote="hmssh" revision="kirkstone" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project remote="hmssh" revision="master" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
+  <project remote="hmssh" revision="Browser-update" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
   <project remote="hmssh" revision="master" name="mx4-deploy.git" path="mx4-deploy"/>
   
   <project remote="clang" name="meta-clang" path="sources/meta-clang" />
-  <project revision="c7651db9417d0694a05438967ca24b26ec69f9e1" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
+  <project revision="939024cfdfeda4e3cd59ff5861c3c519f9999159" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
+  <project revision="kirkstone/rust" remote="yocto" name="meta-lts-mixins" path="sources/meta-lts-mixins"/>
+  
   <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" upstream="master"/>
   <project name="meta-imx" path="sources/meta-imx" remote="nxp-imx" revision="refs/tags/rel_imx_5.15.52_2.1.0" upstream="kirkstone-5.15.52-2.1.0"/>
   <project remote="QT5" upstream="kirkstone"   name="meta-qt5"                path="sources/meta-qt5"/>
