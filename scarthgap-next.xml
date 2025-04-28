@@ -19,7 +19,7 @@
 
   <project remote="oe" revision="scarthgap" upstream="scarthgap" name="meta-openembedded" path="sources/meta-openembedded"/>
 
-  <project remote="hmssh" revision="main" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project remote="hmssh" revision="scarthgap-hmx" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
   <project remote="hmssh" upstream="main" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
   
   <project revision="8c77b427408db01b8de4c04bd3d247c13c154f92" upstream="scarthgap" remote="clang" name="meta-clang" path="sources/meta-clang" />
