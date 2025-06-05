@@ -145,6 +145,9 @@ find_templateconf()
     verdin-am62-hmm)
       machine_folder="hmm"
       ;;
+    mx5-pt)
+      machine_folder="mxv"
+      ;;
     *)
       machine_folder="generic"
       ;;
@@ -199,6 +202,9 @@ get_build_folder()
         ;;
       verdin-am62-hmm)
         echo "build-hmm"
+        ;;
+      mx5-pt)
+        echo "build-mxv"
         ;;
       *)
         echo "build"
