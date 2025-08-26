@@ -19,8 +19,8 @@
 
   <project remote="oe" revision="scarthgap" upstream="scarthgap" name="meta-openembedded" path="sources/meta-openembedded"/>
 
-  <project remote="hmssh" revision="main" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
-  <project remote="hmssh" upstream="main" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
+  <project remote="hmssh" revision="hmx/dart-som-v2-support" name="meta-hostmobility-bsp" path="sources/meta-hostmobility-bsp" />
+  <project remote="hmssh" revision="hmx/dart-som-v2-support" name="meta-mobility-poky-distro" path="sources/meta-mobility-poky-distro"/>
   
   <project revision="8c77b427408db01b8de4c04bd3d247c13c154f92" upstream="scarthgap" remote="clang" name="meta-clang" path="sources/meta-clang" />
   <project revision="0c43dd66e951624415516bdefcd7a7a8a641fbc3" upstream="scarthgap" remote="OSSystems" name="meta-browser" path="sources/meta-browser" />
@@ -45,7 +45,7 @@
   <project revision="e06f8574e9abb3b98a60d5a8129d1ec4f79b4ca0" name="meta-imx" path="sources/meta-imx" remote="nxp-imx" upstream="scarthgap-6.6.23-2.0.0"/>
 
   <project name="meta-variscite-bsp-common"  path="sources/meta-variscite-bsp-common"  remote="variscite"   revision="672d282f4fb4389d5102f213da0996887608b3fb" upstream="scarthgap_6.6.23-2.0.0_var01"/>
-  <project name="meta-variscite-bsp-imx"     path="sources/meta-variscite-bsp-imx"     remote="variscite"   revision="fd1bc1d5fdf7338fe8e5c41ebe63eaff057c15c9" upstream="scarthgap_6.6.23-2.0.0_var01"/>
+  <project name="meta-variscite-bsp-imx"     path="sources/meta-variscite-bsp-imx"     remote="variscite"   revision="7dc68c278f2ed84fa7137a7f97373eabf6adb30e" upstream="scarthgap_6.6.52-2.2.0_var01"/>
   <project name="meta-variscite-hab"         path="sources/meta-variscite-hab"         remote="variscite"   revision="c07e5a34c3d4375b01b3df349532f7aebfb32a31" upstream="scarthgap_6.6.23-2.0.0_var01"/>
   <project name="meta-variscite-sdk-common"  path="sources/meta-variscite-sdk-common"  remote="variscite"   revision="4e04623c9f7400a9330b654a62e0561be032a91a" upstream="scarthgap_6.6.23-2.0.0_var01"/>
   <project name="meta-variscite-sdk-imx"     path="sources/meta-variscite-sdk-imx"     remote="variscite"   revision="da7e0bd164f42fe1449eebdddc487af6b3809433" upstream="scarthgap_6.6.23-2.0.0_var01"/>
