@@ -23,7 +23,7 @@
   <project name="meta-clang"                  remote="clang"          path="sources/meta-clang"                 upstream="scarthgap"/>
 
   <project name="meta-hostmobility-bsp"       remote="hmssh"          path="sources/meta-hostmobility-bsp"      revision="hmx/dart-som-v2-support"/>
-  <project name="meta-mobility-poky-distro"   remote="hmssh"          path="sources/meta-mobility-poky-distro"  revision="hmx/dart-som-v2-support"/>
+  <project name="meta-mobility-poky-distro"   remote="hmssh"          path="sources/meta-mobility-poky-distro"  revision="at/hmx/add-dart-som-v2-support"/>
 
   <project name="meta-lts-mixins"             remote="yocto"          path="sources/meta-lts-mixins"            revision="scarthgap/rust"/>
   <project name="meta-ti"                     remote="yocto"          path="sources/meta-ti"                    upstream="scarthgap"/>
@@ -41,6 +41,7 @@
   <project name="meta-freescale-distro"       remote="freescale"      path="sources/meta-freescale-distro"      upstream="scarthgap"/>
 
   <project name="meta-imx"                    remote="imx"            path="sources/meta-imx"                   revision="scarthgap-6.6.52-2.2.0"/>
+  <project name="meta-nxp-connectivity"       remote="imx"            path="sources/meta-nxp-connectivity"      revision="e2be01a6812dc326987a974dc94a9115281515e5" upstream="imx_matter_2024_q3-post"/>
   <project name="meta-swupdate"               remote="sbabic"         path="sources/meta-swupdate"              upstream="scarthgap"/>
 
   <project name="meta-variscite-bsp-common"   remote="variscite"      path="sources/meta-variscite-bsp-common"  revision="adb17563a6f2ebac7f929cbddbd31fa61a6bf8ce" upstream="scarthgap_6.6.52-2.2.0_var01"/>
