@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+
+  <default sync-j="4" revision="scarthgap"/>
+
+  <include name="scarthgap.xml" />
+
+  <project name="meta-mobility-c1-distro"     remote="hmssh"          path="sources/meta-mobility-c1-distro"    revision="8077143537890009a034ffb022ca63ac7e067781" upstream="scarthgap"/>
+</manifest>
