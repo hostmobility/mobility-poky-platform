@@ -36,20 +36,20 @@
   <project name="meta-freescale-3rdparty"     remote="freescale"      path="sources/meta-freescale-3rdparty"    upstream="scarthgap"/>
   <project name="meta-freescale-distro"       remote="freescale"      path="sources/meta-freescale-distro"      upstream="scarthgap"/>
   <!-- TI BSP -->
-  <project name="meta-ti"                     remote="yocto"          path="sources/meta-ti"                    upstream="scarthgap"/>
+  <project name="meta-ti"                     remote="yocto"          path="sources/meta-ti"                    revision="f7cd5f92135bd53a843b188bce559ec894425766" upstream="scarthgap"/>
   <!-- ARM architecture support -->
   <project name="meta-arm"                    remote="yocto"          path="sources/meta-arm"                   upstream="scarthgap"/>
   <!-- Host Mobility specific BSP and distro -->
   <project name="meta-hostmobility-bsp"       remote="hmssh"          path="sources/meta-hostmobility-bsp"      revision="main"/>
   <project name="meta-mobility-poky-distro"   remote="hmssh"          path="sources/meta-mobility-poky-distro"  revision="master"/>
   <!-- Toradex SOM support -->
-  <project name="meta-toradex-bsp-common.git" remote="tdx"            path="sources/meta-toradex-bsp-common"    revision="2a08f0b91aac0eafcb6a85084d3aa5c75922b9f3" upstream="scarthgap-7.x.y"/>
-  <project name="meta-toradex-ti.git"         remote="tdx"            path="sources/meta-toradex-ti"            revision="7d721471477a5f55dd55427bb26607141dd6e380" upstream="scarthgap-7.x.y"/>
+  <project name="meta-toradex-bsp-common.git" remote="tdx"            path="sources/meta-toradex-bsp-common"    revision="bf9b67ca1dae378c612ba9fc89e491a11b314e05" upstream="scarthgap-7.x.y"/>
+  <project name="meta-toradex-ti.git"         remote="tdx"            path="sources/meta-toradex-ti"            revision="0e50c759b1e509c2b97b305916702acad3a7f734" upstream="scarthgap-7.x.y"/>
   <!-- Variscite SOM support -->
-  <project name="meta-variscite-bsp-common"   remote="variscite"      path="sources/meta-variscite-bsp-common"  revision="adb17563a6f2ebac7f929cbddbd31fa61a6bf8ce" upstream="scarthgap_6.6.52-2.2.0_var01"/>
-  <project name="meta-variscite-bsp-imx"      remote="variscite"      path="sources/meta-variscite-bsp-imx"     revision="fbbbdbd556019a97db6bcab48853c15687c8e415" upstream="scarthgap_6.6.52-2.2.0_var01"/>
+  <project name="meta-variscite-bsp-common"   remote="variscite"      path="sources/meta-variscite-bsp-common"  revision="4713e95f2c92d041f32c9835e32d701a876b02d8" upstream="scarthgap_6.6.52-2.2.0_var01"/>
+  <project name="meta-variscite-bsp-imx"      remote="variscite"      path="sources/meta-variscite-bsp-imx"     revision="d87593ff52152909b4ded866918264a42f0a2d5e" upstream="scarthgap_6.6.52-2.2.0_var01"/>
   <project name="meta-variscite-hab"          remote="variscite"      path="sources/meta-variscite-hab"         revision="949557e79104bfc99f15d9787a9ca853bf939128" upstream="scarthgap_6.6.52-2.2.0_var01"/>
   <project name="meta-variscite-sdk-common"   remote="variscite"      path="sources/meta-variscite-sdk-common"  revision="c099acece182a3e275745ea22797eb375b307798" upstream="scarthgap_6.6.52-2.2.0_var01"/>
-  <project name="meta-variscite-sdk-imx"      remote="variscite"      path="sources/meta-variscite-sdk-imx"     revision="2f8d0800a5209bfe4059bf87a495435ced4d43ec" upstream="scarthgap_6.6.52-2.2.0_var01"/>
+  <project name="meta-variscite-sdk-imx"      remote="variscite"      path="sources/meta-variscite-sdk-imx"     revision="c653d554621e36fe7dbb5da5c4912aecfc4f82cb" upstream="scarthgap_6.6.52-2.2.0_var01"/>
 
 </manifest>
