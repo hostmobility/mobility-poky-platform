@@ -40,7 +40,7 @@
   <!-- ARM architecture support -->
   <project name="meta-arm"                    remote="yocto"          path="sources/meta-arm"                   revision="0f1e7bf92c89759f0ab74cfa5be4ee47b092ad46" upstream="scarthgap"/>
   <!-- Host Mobility specific BSP and distro -->
-  <project name="meta-hostmobility-bsp"       remote="hmssh"          path="sources/meta-hostmobility-bsp"      revision="f9fa04e9e946a8eb027c9466512683361e0fc753" upstream="main"/>
+  <project name="meta-hostmobility-bsp"       remote="hmssh"          path="sources/meta-hostmobility-bsp"      revision="8661d4ffad0359582046b43bcf78e97b0c6e0327" upstream="main"/>
   <project name="meta-mobility-poky-distro"   remote="hmssh"          path="sources/meta-mobility-poky-distro"  revision="f0f1b5e0c5c85fb63542b7af60aff91f79bb26ca" upstream="master"/>
   <!-- Toradex SOM support -->
   <project name="meta-toradex-bsp-common.git" remote="tdx"            path="sources/meta-toradex-bsp-common"    revision="2a08f0b91aac0eafcb6a85084d3aa5c75922b9f3" upstream="scarthgap-7.x.y"/>
