@@ -426,14 +426,22 @@ deploy_packages()
 
   # Create destination directory. Interpret part before an eventual ":" as
   # a server name so run mkdir using ssh in that case.
+  # In case of an intermediate host (jumphost) they should also be split by ":",
+  # like user@jumphost:user@host:/images/path
   IFS=":" read  -ra destination_parts <<< "$2"
-  if [[ -n ${destination_parts[1]} ]]; then
+  if [[ -n ${destination_parts[2]} ]]; then
+    ssh -J "${destination_parts[0]}" "${destination_parts[1]}" mkdir -p "${destination_parts[2]}/$packages_path"
+  elif [[ -n ${destination_parts[1]} ]]; then
     ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/$packages_path"
   else
     mkdir -p "${destination_parts[0]}/$packages_path"
   fi
 
-  rsync --min-size=1B -avrm "${1}"/build*/tmp/deploy/ipk/ "${2}/$packages_path" || return 1
+  if [[ -n ${destination_parts[2]} ]]; then
+    rsync --min-size=1B -avrm -e "ssh -A -J ${destination_parts[0]}" "${1}"/build*/tmp/deploy/ipk/ "${destination_parts[1]}":"${destination_parts[2]}/$packages_path" || return 1
+  else
+    rsync --min-size=1B -avrm "${1}"/build*/tmp/deploy/ipk/ "${2}/$packages_path" || return 1
+  fi
 
   return 0
 }
@@ -451,7 +459,9 @@ check_deploy_location()
   fi
 
   IFS=":" read -ra destination_parts <<< "$2"
-  if [[ -n ${destination_parts[1]} ]]; then
+  if [[ -n ${destination_parts[2]} ]]; then
+    path_parts=($(echo "${destination_parts[2]}" | tr "/" "\n"))
+  elif [[ -n ${destination_parts[1]} ]]; then
     path_parts=($(echo "${destination_parts[1]}" | tr "/" "\n"))
   else
     path_parts=($(echo "${destination_parts[0]}" | tr "/" "\n"))
@@ -460,7 +470,10 @@ check_deploy_location()
   for ((i=${#path_parts[@]}; i>=1; i--)); do
       current_path=$(IFS="/"; echo "${path_parts[*]:0:i}")
 
-      if [[ -n ${destination_parts[1]} ]]; then
+      if [[ -n ${destination_parts[2]} ]]; then
+          # Remote destination with jumphost - check write permission on the current directory level
+          ssh -J "${destination_parts[0]}" "${destination_parts[1]}" "[[ -w \"${current_path}\" || -w \"\$(dirname \"${current_path}\")\" ]]" && return 0
+      elif [[ -n ${destination_parts[1]} ]]; then
           # Remote destination - check write permission on the current directory level
           ssh "${destination_parts[0]}" "[[ -w \"${current_path}\" || -w \"\$(dirname \"${current_path}\")\" ]]" && return 0
       else
@@ -479,8 +492,12 @@ deploy_images()
 {
   # Create destination directory. Interpret part before an eventual ":" as
   # a server name so run mkdir using ssh in that case.
+  # In case of an intermediate host (jumphost) they should also be split by ":",
+  # like user@jumphost:user@host:/images/path
   IFS=":" read  -ra destination_parts <<< "$2"
-  if [[ -n ${destination_parts[1]} ]]; then
+  if [[ -n ${destination_parts[2]} ]]; then
+    ssh -J "${destination_parts[0]}" "${destination_parts[1]}" mkdir -p "${destination_parts[2]}/"
+  elif [[ -n ${destination_parts[1]} ]]; then
     ssh "${destination_parts[0]}" mkdir -p "${destination_parts[1]}/"
   else
     mkdir -p "${destination_parts[0]}/"
@@ -488,7 +505,13 @@ deploy_images()
 
   build_folder=$(get_build_folder "${wanted_build_folder}")
   if [[ -z $3 ]]; then
-    rsync --min-size=1B -avrm "${1}"/$build_folder/$build_deploy_dir/${MACHINE}/* "${2}/" || return 1
+
+    if [[ -n ${destination_parts[2]} ]]; then
+      rsync --min-size=1B -avrm -e "ssh -A -J ${destination_parts[0]}" "${1}"/$build_folder/$build_deploy_dir/${MACHINE}/* "${destination_parts[1]}:${destination_parts[2]}/" || return 1
+    else
+      rsync --min-size=1B -avrm "${1}"/$build_folder/$build_deploy_dir/${MACHINE}/* "${2}/" || return 1
+    fi
+
   else
     pattern=${3#"'"}   # Remove leading single quote
     pattern=${pattern%"'"}   # Remove trailing single quote
@@ -499,7 +522,12 @@ deploy_images()
     for inc in "${deploy_includes[@]}"; do
       include_pattern+=(--include="$inc")
     done
-    rsync --min-size=1B -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/$build_folder/$build_deploy_dir/${MACHINE}/* "${2}/" || return 1
+
+    if [[ -n ${destination_parts[2]} ]]; then
+      rsync --min-size=1B -avrm "${include_pattern[@]}" -e "ssh -A -J ${destination_parts[0]}" --include='*/' --exclude='*' "${1}"/$build_folder/$build_deploy_dir/${MACHINE}/* "${destination_parts[1]}":"${destination_parts[2]}/" || return 1
+    else
+      rsync --min-size=1B -avrm "${include_pattern[@]}" --include='*/' --exclude='*' "${1}"/$build_folder/$build_deploy_dir/${MACHINE}/* "${2}/" || return 1
+    fi
   fi
 
   return 0
