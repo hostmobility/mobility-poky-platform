@@ -8,6 +8,6 @@
   <include name="scarthgap.xml" />
   <remove-project name="meta-mobility-poky-distro"/>
 
-  <project revision="99cdb2a2b66852054b510e4302729b364c05efb0" remote="hmssh" name="meta-mobility-c2-distro" path="sources/meta-mobility-c2-distro"/>
+  <project revision="a0b0d93917c2b9d261a8457d567c98179d0cc963" remote="hmssh" name="meta-mobility-c2-distro" path="sources/meta-mobility-c2-distro"/>
 
 </manifest>
