@@ -27,6 +27,9 @@ Required arguments:
 Options:
   -b, --build-folder PATH                  Specify the directory for the build output. Defaults to build.
   -c, --delete-conf                        Delete existing configuration files in the build directory. Recommended if you build multiple different machines.
+  -C, --cve-report                         Enable Yocto cve-check for this build if not already configured.
+                                           Generates a CVE report alongside the image in the deploy directory.
+
   -d, --distro DISTRO                      Specify the target poky distro, e.g. poky or fslc-wayland. Defaults to poky.
   -e, --env-passthrough                    Pass through environment variables such as access tokens and passwords (separate tokens with ',').
   -g, --skip-docker-pull                   Skip update of docker container.
@@ -84,8 +87,8 @@ parse_options()
   #default values if not used.
   build_deploy_dir="deploy-mobility/images"
 
-  LONGOPTIONS='build-tag:,build-folder:,build-deploy-dir:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,templateconf:,env-passthrough:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,k:,m:,o,f:,r:,s,y:,p:,z:,e:'
+  LONGOPTIONS='build-tag:,build-folder:,build-deploy-dir:,delete-conf,cve-report,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,templateconf:,env-passthrough:'
+  SHORTOPTIONS='t:,b:,c,C,d:,g,h,i:,k:,m:,o,f:,r:,s,y:,p:,z:,e:'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
 
@@ -94,6 +97,7 @@ parse_options()
       '--') shift; break ;;
       '-b'|'--build-folder') wanted_build_folder="$2"; shift 2;;
       '-c'|'--delete-conf') DELETE_CONF="y"; shift;;
+      '-C'|'--cve-report') DO_CVE_REPORT="y"; shift;;
       '-d'|'--distro') DISTRO="$2"; shift 2;;
       '-e'|'--env-passthrough') USER_PASSTHROUGH_VARS="$2"; shift 2;;
       '-f'|'--manifest-file') MANIFEST_FILE="$2"; shift 2;;
@@ -249,6 +253,23 @@ init_yocto_build()
   echo "👷 Now sources $POKYFOLDER/oe-init-build-env to build directory $build_folder. Now let's bake bits!"
 
   source "$POKYFOLDER/oe-init-build-env" "$build_folder"
+
+  if [[ -n "${DO_CVE_REPORT:-}" ]]; then
+    local localconf="conf/local.conf"
+    [[ -f "$localconf" ]] || { echo "🔴  Cannot find $localconf"; exit 1; }
+
+    # Enable cve-check
+    if ! grep -Eq '(^|\s)INHERIT(\s*\+?=|\s*=\s*).*cve-check' "$localconf"; then
+      echo >> "$localconf"
+      echo 'INHERIT += "cve-check"' >> "$localconf"
+    fi
+
+    # Exclude CVEs which have been deemed not to impact Poky or OE-Core
+    if ! grep -Fqx 'include conf/distro/include/cve-extra-exclusions.inc' "$localconf"; then
+      echo >> "$localconf"
+      echo 'include conf/distro/include/cve-extra-exclusions.inc' >> "$localconf"
+    fi
+  fi
 
   if [[ -d $DL_DIR ]]; then
     grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
