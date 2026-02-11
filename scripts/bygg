@@ -27,6 +27,9 @@ Required arguments:
 Options:
   -b, --build-folder PATH                  Specify the directory for the build output. Defaults to build.
   -c, --delete-conf                        Delete existing configuration files in the build directory. Recommended if you build multiple different machines.
+  -C, --cve-report                         Update CVE database and generate CVE reports (cve_check) for built images/recipes.
+                                           Stores a tarball of CVE JSON output (tmp/deploy/cve if present, otherwise tmp*/deploy/cve) under the machine deploy directory.
+
   -d, --distro DISTRO                      Specify the target poky distro, e.g. poky or fslc-wayland. Defaults to poky.
   -e, --env-passthrough                    Pass through environment variables such as access tokens and passwords (separate tokens with ',').
   -g, --skip-docker-pull                   Skip update of docker container.
@@ -84,8 +87,8 @@ parse_options()
   #default values if not used.
   build_deploy_dir="deploy-mobility/images"
 
-  LONGOPTIONS='build-tag:,build-folder:,build-deploy-dir:,delete-conf,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,templateconf:,env-passthrough:'
-  SHORTOPTIONS='t:,b:,c,d:,g,h,i:,k:,m:,o,f:,r:,s,y:,p:,z:,e:'
+  LONGOPTIONS='build-tag:,build-folder:,build-deploy-dir:,delete-conf,cve-report,distro:,skip-docker-pull,help,image:,machine:,manifest-file:,deploy-packages:,deploy-images:,deploy-image-includes:,populate-sdk,recipe:,repo-sync,templateconf:,env-passthrough:'
+  SHORTOPTIONS='t:,b:,c,C,d:,g,h,i:,k:,m:,o,f:,r:,s,y:,p:,z:,e:'
   options=$(getopt -o "$SHORTOPTIONS" --longoptions "$LONGOPTIONS" -- "$@") || usage
   eval set -- "$options"
 
@@ -94,6 +97,7 @@ parse_options()
       '--') shift; break ;;
       '-b'|'--build-folder') wanted_build_folder="$2"; shift 2;;
       '-c'|'--delete-conf') DELETE_CONF="y"; shift;;
+      '-C'|'--cve-report') DO_CVE_REPORT="y"; shift;;
       '-d'|'--distro') DISTRO="$2"; shift 2;;
       '-e'|'--env-passthrough') USER_PASSTHROUGH_VARS="$2"; shift 2;;
       '-f'|'--manifest-file') MANIFEST_FILE="$2"; shift 2;;
@@ -266,6 +270,129 @@ init_yocto_build()
   export PLATFORM_VERSION_DETAILS
 }
 export -f init_yocto_build
+
+check_cve_check_enabled()
+{
+  [[ -z "${DO_CVE_REPORT:-}" ]] && return 0
+
+  local localconf="${BUILDDIR:-$PWD}/conf/local.conf"
+  [[ -f "$localconf" ]] || { echo "🔴 🛡️  Cannot find local.conf at: $localconf"; exit 1; }
+  if ! grep -Eq '(^|\s)INHERIT(\s*\+?=|\s*=\s*).*cve-check' "$localconf"; then
+    echo "🔴 🛡️  --cve-report requested, but cve-check is not enabled."
+    echo "Checked: $localconf"
+    echo "Please add the following to local.conf.sample:"
+    echo
+    echo '  INHERIT += "cve-check"'
+    exit 1
+  fi
+}
+
+cve_db_is_fresh_enough()
+{
+  # Returns 0 (true) if the CVE DB cache looks updated within last 24h
+  [[ -n "${DL_DIR:-}" ]] || { echo "🛡️  DL_DIR not set; cannot reuse CVE cache."; return 1; }
+
+  local cve_dir="${DL_DIR}/CVE_CHECK"
+  [[ -d "$cve_dir" ]] || return 1
+
+  local newest_ts
+  newest_ts=$(find "$cve_dir" -type f -printf '%T@\n' 2>/dev/null | sort -nr | head -n 1)
+  [[ -n "$newest_ts" ]] || return 1
+
+  local now_ts
+  now_ts=$(date -u +%s)
+
+  awk -v newest="$newest_ts" -v now="$now_ts" 'BEGIN { exit !((now - newest) < 86400) }'
+}
+
+maybe_update_cve_db()
+{
+  # Only do this once per script run
+  if [[ "${CVE_DB_CHECK_DONE:-0}" -eq 1 ]]; then
+    return 0
+  fi
+  CVE_DB_CHECK_DONE=1
+
+  if cve_db_is_fresh_enough; then
+    echo "🛡️  CVE database cache is fresh (<24h); skipping NVD update."
+    return 0
+  fi
+
+  echo "🛡️  Updating CVE database (NVD cache)…"
+  bitbake cve-update-nvd2-native -c do_fetch
+}
+
+list_cve_deploy_dirs()
+{
+  # Prefer the canonical location if it exists
+  if [[ -d "tmp/deploy/cve" ]]; then
+    echo "tmp/deploy/cve"
+    return 0
+  fi
+
+  # Otherwise include all tmp*/deploy/cve dirs (tmp-*, tmp-glibc, tmp-baremetal-*, etc)
+  find . -maxdepth 3 -type d -path "./tmp*/deploy/cve" -print 2>/dev/null \
+    | sed 's|^\./||' \
+    | sort -u
+}
+
+archive_cve_reports()
+{
+  local build_folder deploy_dir stamp out
+  build_folder=$(get_build_folder "${wanted_build_folder}")
+  deploy_dir="$YOCTO_FOLDER/$build_folder/$build_deploy_dir/${MACHINE}"
+  mkdir -p "$deploy_dir"
+
+  stamp="${BUILD_TAG:-$(date -u +%Y%m%dT%H%M%SZ)}"
+  out="$deploy_dir/cve-report-${stamp}.tar.gz"
+
+  mapfile -t cve_dirs < <(list_cve_deploy_dirs)
+
+  if [[ ${#cve_dirs[@]} -eq 0 ]]; then
+    echo "⚠️  🛡️  No deploy/cve directories found (tmp/deploy/cve or tmp*/deploy/cve)."
+    return 0
+  fi
+
+  if [[ "${cve_dirs[0]}" == "tmp/deploy/cve" ]]; then
+    echo "🛡️  Using tmp/deploy/cve"
+  else
+    echo "🛡️  tmp/deploy/cve not found; archiving all tmp*/deploy/cve:"
+    for d in "${cve_dirs[@]}"; do
+      echo "   - $d"
+    done
+  fi
+
+  # Keep paths inside tar to avoid collisions between tmp-* trees
+  tar -czf "$out" "${cve_dirs[@]}"
+  echo "🛡️  CVE report archived: $out"
+}
+
+run_cve_report_if_enabled()
+{
+  [[ -z "${DO_CVE_REPORT:-}" ]] && return 0
+
+  maybe_update_cve_db
+
+  local targets=()
+  if [[ ${#images[@]} -gt 0 ]]; then
+    targets=("${images[@]}")
+  else
+    targets=("${recipes[@]}")
+  fi
+
+  if [[ ${#targets[@]} -eq 0 ]]; then
+    echo "⚠️  🛡️  --cve-report enabled but no images/recipes found to run cve_check on."
+    return 0
+  fi
+
+  echo "🛡️  Running cve_check for: ${targets[*]}"
+  for t in "${targets[@]}"; do
+    echo "🛡️  Checking: $t"
+    bitbake -c cve_check -f "$t"
+  done
+
+  archive_cve_reports
+}
 
 configure_git_if_needed()
 {
@@ -621,11 +748,43 @@ if [[ "$RUNNING_IN_DOCKER" != "1" ]]; then
       fi
     done
     if [[ -n "$image_server" ]]; then
-      deploy_images "$YOCTO_FOLDER" "$image_server" "$img_includes"
-
-      if [ $? -ne 0 ]; then
+      # Normal deploy (everything if -z wasn't used, otherwise filtered)
+      deploy_images "$YOCTO_FOLDER" "$image_server" "$img_includes" || {
         echo "🔴 --deploy-images with destination path ${image_server}: failed to upload the files"
         exit 1
+      }
+
+      # If --cve-report was requested, also deploy the tarball (without changing the main deploy behavior)
+      if [[ -n "${DO_CVE_REPORT:-}" ]]; then
+        build_folder=$(get_build_folder "${wanted_build_folder}")
+        cve_src_dir="$YOCTO_FOLDER/$build_folder/$build_deploy_dir/${MACHINE}"
+
+        # Pick newest cve-report tarball (if multiple exist)
+        cve_tar="$(
+          find "$cve_src_dir" -maxdepth 1 -type f -name 'cve-report-*.tar.gz' \
+            -printf '%T@ %p\n' 2>/dev/null \
+          | sort -nr \
+          | head -n 1 \
+          | cut -d' ' -f2-
+        )"
+
+        if [[ -n "$cve_tar"  && -f "$cve_tar" ]]; then
+          echo "🛡️  Deploying CVE report tarball: $(basename "$cve_tar")"
+
+          IFS=":" read -ra destination_parts <<< "$image_server"
+          if [[ -n ${destination_parts[2]} ]]; then
+            rsync --min-size=1B -avrm -e "ssh -A -J ${destination_parts[0]}" \
+                  "$cve_tar" "${destination_parts[1]}":"${destination_parts[2]}/" || exit 1
+          elif [[ -n ${destination_parts[1]} ]]; then
+            rsync --min-size=1B -avrm \
+                  "$cve_tar" "${destination_parts[0]}":"${destination_parts[1]}/" || exit 1
+          else
+            rsync --min-size=1B -avrm \
+                  "$cve_tar" "${destination_parts[0]}/" || exit 1
+          fi
+        else
+          echo "⚠️  🛡️  No cve-report-*.tar.gz found in $cve_src_dir"
+        fi
       fi
     fi
   done
@@ -684,6 +843,9 @@ for MACHINE in "${machines[@]}"; do
   cd "$YOCTO_FOLDER"
   init_yocto_build
 
+  # Ensure cve-check is configured if --cve-report was requested
+  check_cve_check_enabled
+
   # Call custom build command first if it is defined
   if [ -n "$BUILD_COMMAND" ]; then
     $BUILD_COMMAND
@@ -694,6 +856,9 @@ for MACHINE in "${machines[@]}"; do
 
   # Build all recipes including images
   [[ -n "${recipes[0]}" ]] && bitbake "${recipes[@]}"
+
+  # If requested, update CVE DB + generate CVE report(s) + archive
+  run_cve_report_if_enabled
 
   # Update package indices if we are syncing to server later.
   [[ -n "$deploy_packages" ]] && bitbake package-index
