@@ -345,7 +345,7 @@ archive_cve_reports()
   mkdir -p "$deploy_dir"
 
   stamp="${BUILD_TAG:-$(date -u +%Y%m%dT%H%M%SZ)}"
-  out="$deploy_dir/cve-report-${stamp}.tar.gz"
+  cve_report_archive="$deploy_dir/cve-report-${stamp}.tar.gz"
 
   builddir="${BUILDDIR:-}"
   [[ -n "$builddir" && -d "$builddir" ]] || { echo "🔴 🛡️  BUILDDIR not set or invalid; did oe-init-build-env run?"; return 1; }
@@ -357,18 +357,9 @@ archive_cve_reports()
     return 0
   fi
 
-  if [[ "${cve_dirs[0]}" == "tmp/deploy/cve" ]]; then
-    echo "🛡️  Using tmp/deploy/cve"
-  else
-    echo "🛡️  tmp/deploy/cve not found; archiving all tmp*/deploy/cve:"
-    for d in "${cve_dirs[@]}"; do
-      echo "   - $d"
-    done
-  fi
-
   # Keep paths inside tar to avoid collisions between tmp-* trees
-  tar -C "$builddir" -czf "$out" "${cve_dirs[@]}"
-  echo "🛡️  CVE report archived: $out"
+  tar -C "$builddir" -czf "$cve_report_archive" "${cve_dirs[@]}"
+  echo "🛡️  CVE report archived: $cve_report_archive"
 }
 
 run_cve_report_if_enabled()
