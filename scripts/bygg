@@ -254,6 +254,21 @@ init_yocto_build()
 
   source "$POKYFOLDER/oe-init-build-env" "$build_folder"
 
+  if [[ -n "${DO_CVE_REPORT:-}" ]]; then
+    local localconf="conf/local.conf"
+    [[ -f "$localconf" ]] || { echo "🔴 🛡️  Cannot find $localconf"; exit 1; }
+
+    if ! grep -Eq '(^|\s)INHERIT(\s*\+?=|\s*=\s*).*cve-check' "$localconf"; then
+      echo >> "$localconf"
+      echo 'INHERIT += "cve-check"' >> "$localconf"
+    fi
+
+    if ! grep -Fqx 'include conf/distro/include/cve-extra-exclusions.inc' "$localconf"; then
+      echo >> "$localconf"
+      echo 'include conf/distro/include/cve-extra-exclusions.inc' >> "$localconf"
+    fi
+  fi
+
   if [[ -d $DL_DIR ]]; then
     grep "DL_DIR=" conf/local.conf || echo "DL_DIR=\"$DL_DIR\"" >> conf/local.conf;
   fi
@@ -270,22 +285,6 @@ init_yocto_build()
   export PLATFORM_VERSION_DETAILS
 }
 export -f init_yocto_build
-
-check_cve_check_enabled()
-{
-  [[ -z "${DO_CVE_REPORT:-}" ]] && return 0
-
-  local localconf="${BUILDDIR:-$PWD}/conf/local.conf"
-  [[ -f "$localconf" ]] || { echo "🔴 🛡️  Cannot find local.conf at: $localconf"; exit 1; }
-  if ! grep -Eq '(^|\s)INHERIT(\s*\+?=|\s*=\s*).*cve-check' "$localconf"; then
-    echo "🔴 🛡️  --cve-report requested, but cve-check is not enabled."
-    echo "Checked: $localconf"
-    echo "Please add the following to local.conf.sample:"
-    echo
-    echo '  INHERIT += "cve-check"'
-    exit 1
-  fi
-}
 
 cve_db_is_fresh_enough()
 {
@@ -385,9 +384,7 @@ run_cve_report_if_enabled()
     return 0
   fi
 
-  echo "🛡️  Running cve_check for: ${targets[*]}"
   for t in "${targets[@]}"; do
-    echo "🛡️  Checking: $t"
     bitbake -c cve_check -f "$t"
   done
 
@@ -842,9 +839,6 @@ for MACHINE in "${machines[@]}"; do
   # Setup bitbake, leaves us in build folder
   cd "$YOCTO_FOLDER"
   init_yocto_build
-
-  # Ensure cve-check is configured if --cve-report was requested
-  check_cve_check_enabled
 
   # Call custom build command first if it is defined
   if [ -n "$BUILD_COMMAND" ]; then
