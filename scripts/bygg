@@ -323,21 +323,23 @@ maybe_update_cve_db()
 
 list_cve_deploy_dirs()
 {
-  # Prefer the canonical location if it exists
-  if [[ -d "tmp/deploy/cve" ]]; then
+  local builddir="${1:-${BUILDDIR:-$PWD}}"
+
+  # Prefer canonical location if it exists
+  if [[ -d "$builddir/tmp/deploy/cve" ]]; then
     echo "tmp/deploy/cve"
     return 0
   fi
 
   # Otherwise include all tmp*/deploy/cve dirs (tmp-*, tmp-glibc, tmp-baremetal-*, etc)
-  find . -maxdepth 3 -type d -path "./tmp*/deploy/cve" -print 2>/dev/null \
-    | sed 's|^\./||' \
+  find "$builddir" -maxdepth 3 -type d -path "$builddir/tmp*/deploy/cve" -print 2>/dev/null \
+    | sed "s|^$builddir/||" \
     | sort -u
 }
 
 archive_cve_reports()
 {
-  local build_folder deploy_dir stamp out
+  local build_folder deploy_dir stamp out builddir
   build_folder=$(get_build_folder "${wanted_build_folder}")
   deploy_dir="$YOCTO_FOLDER/$build_folder/$build_deploy_dir/${MACHINE}"
   mkdir -p "$deploy_dir"
@@ -345,10 +347,13 @@ archive_cve_reports()
   stamp="${BUILD_TAG:-$(date -u +%Y%m%dT%H%M%SZ)}"
   out="$deploy_dir/cve-report-${stamp}.tar.gz"
 
-  mapfile -t cve_dirs < <(list_cve_deploy_dirs)
+  builddir="${BUILDDIR:-}"
+  [[ -n "$builddir" && -d "$builddir" ]] || { echo "🔴 🛡️  BUILDDIR not set or invalid; did oe-init-build-env run?"; return 1; }
+
+  mapfile -t cve_dirs < <(list_cve_deploy_dirs "$builddir")
 
   if [[ ${#cve_dirs[@]} -eq 0 ]]; then
-    echo "⚠️  🛡️  No deploy/cve directories found (tmp/deploy/cve or tmp*/deploy/cve)."
+    echo "⚠️  🛡️  No deploy/cve directories found under $builddir (tmp/deploy/cve or tmp*/deploy/cve)."
     return 0
   fi
 
@@ -362,7 +367,7 @@ archive_cve_reports()
   fi
 
   # Keep paths inside tar to avoid collisions between tmp-* trees
-  tar -czf "$out" "${cve_dirs[@]}"
+  tar -C "$builddir" -czf "$out" "${cve_dirs[@]}"
   echo "🛡️  CVE report archived: $out"
 }
 
