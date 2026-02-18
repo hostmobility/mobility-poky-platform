@@ -19,8 +19,8 @@
   <remote name="hmssh"        fetch="ssh://git@github.com/hostmobility/"/>
 
   <!-- Core Yocto/OE -->
-  <project name="poky"                        remote="yocto"          path="sources/poky"                       revision="353491479086e8d3f209d5cce0019a29e143b064" upstream="scarthgap"/>
-  <project name="meta-openembedded"           remote="oe"             path="sources/meta-openembedded"          revision="2759d8870ea387b76c902070bed8a6649ff47b56" upstream="scarthgap"/>
+  <project name="poky"                        remote="yocto"          path="sources/poky"                       revision="1d54d1c4736a114e1cecbe85a0306e3814d5ce70" upstream="scarthgap"/>
+  <project name="meta-openembedded"           remote="oe"             path="sources/meta-openembedded"          revision="ec0469748be4159fb83fb0fa0148d786484c88cf" upstream="scarthgap"/>
   <!-- Toolchain alternatives -->
   <project name="meta-clang"                  remote="clang"          path="sources/meta-clang"                 revision="8c77b427408db01b8de4c04bd3d247c13c154f92" upstream="scarthgap"/>
   <project name="meta-lts-mixins"             remote="yocto"          path="sources/meta-lts-mixins"            revision="c19b6da5a3afd3c892b3b1b44983e993ac6d5308"/>
