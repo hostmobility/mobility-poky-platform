@@ -50,6 +50,6 @@
   <project name="meta-variscite-bsp-imx"      remote="variscite"      path="sources/meta-variscite-bsp-imx"     revision="d87593ff52152909b4ded866918264a42f0a2d5e" upstream="scarthgap_6.6.52-2.2.0_var01"/>
   <project name="meta-variscite-hab"          remote="variscite"      path="sources/meta-variscite-hab"         revision="949557e79104bfc99f15d9787a9ca853bf939128" upstream="scarthgap_6.6.52-2.2.0_var01"/>
   <project name="meta-variscite-sdk-common"   remote="variscite"      path="sources/meta-variscite-sdk-common"  revision="c099acece182a3e275745ea22797eb375b307798" upstream="scarthgap_6.6.52-2.2.0_var01"/>
-  <project name="meta-variscite-sdk-imx"      remote="variscite"      path="sources/meta-variscite-sdk-imx"     revision="da7e0bd164f42fe1449eebdddc487af6b3809433" upstream="scarthgap_6.6.52-2.2.0_var01"/>
+  <project name="meta-variscite-sdk-imx"      remote="variscite"      path="sources/meta-variscite-sdk-imx"     revision="225890d17621888fa0496033cabf0ee0f602bfe2" upstream="scarthgap_6.6.52-2.2.0_var01"/>
 
 </manifest>
