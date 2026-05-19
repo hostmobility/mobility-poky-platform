@@ -19,8 +19,8 @@
   <remote name="hmssh"        fetch="ssh://git@github.com/hostmobility/"/>
 
   <!-- Core Yocto/OE -->
-  <project name="poky"                        remote="yocto"          path="sources/poky"                       revision="7d50718f90c51fb7f650c9db59b28c6e0194e5d2" upstream="scarthgap"/>
-  <project name="meta-openembedded"           remote="oe"             path="sources/meta-openembedded"          revision="ec0469748be4159fb83fb0fa0148d786484c88cf" upstream="scarthgap"/>
+  <project name="poky"                        remote="yocto"          path="sources/poky"                       revision="44dcf08572ce391d7c0df4f8c7510af5e096baca" upstream="scarthgap"/>
+  <project name="meta-openembedded"           remote="oe"             path="sources/meta-openembedded"          revision="ae7dfb12245c7f9b9a353499e2688015bd4e6413" upstream="scarthgap"/>
   <!-- Toolchain alternatives -->
   <project name="meta-clang"                  remote="clang"          path="sources/meta-clang"                 revision="8c77b427408db01b8de4c04bd3d247c13c154f92" upstream="scarthgap"/>
   <project name="meta-lts-mixins"             remote="yocto"          path="sources/meta-lts-mixins"            revision="c19b6da5a3afd3c892b3b1b44983e993ac6d5308"/>
@@ -41,7 +41,7 @@
   <project name="meta-arm"                    remote="yocto"          path="sources/meta-arm"                   revision="a81c19915b5b9e71ed394032e9a50fd06919e1cd" upstream="scarthgap"/>
   <!-- Host Mobility specific BSP and distro -->
   <project name="meta-hostmobility-bsp"       remote="hmssh"          path="sources/meta-hostmobility-bsp"      revision="e71db22f657b299befa9b6ab1228e41167e61f48" upstream="main"/>
-  <project name="meta-mobility-poky-distro"   remote="hmssh"          path="sources/meta-mobility-poky-distro"  revision="ea83453ceb0bca7b1f2b1c9d82bcb359a82c7ad3" upstream="master"/>
+  <project name="meta-mobility-poky-distro"   remote="hmssh"          path="sources/meta-mobility-poky-distro"  revision="fc2cbe39f69777732d05ae93c1bdf613cbcd1836" upstream="master"/>
   <!-- Toradex SOM support -->
   <project name="meta-toradex-bsp-common.git" remote="tdx"            path="sources/meta-toradex-bsp-common"    revision="dd56c35bd3ba55f1dedc022cf13ec906e0ddb1f3" upstream="scarthgap-7.x.y"/>
   <project name="meta-toradex-ti.git"         remote="tdx"            path="sources/meta-toradex-ti"            revision="eb078c659fa9326a78ab2d3d88e99f9101e51a55" upstream="scarthgap-7.x.y"/>
