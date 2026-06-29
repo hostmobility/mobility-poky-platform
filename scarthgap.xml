@@ -19,8 +19,8 @@
   <remote name="hmssh"        fetch="ssh://git@github.com/hostmobility/"/>
 
   <!-- Core Yocto/OE -->
-  <project name="poky"                        remote="yocto"          path="sources/poky"                       revision="44dcf08572ce391d7c0df4f8c7510af5e096baca" upstream="scarthgap"/>
-  <project name="meta-openembedded"           remote="oe"             path="sources/meta-openembedded"          revision="ae7dfb12245c7f9b9a353499e2688015bd4e6413" upstream="scarthgap"/>
+  <project name="poky"                        remote="yocto"          path="sources/poky"                       revision="3482e7f32a46f6325a01201f52a4121816c6659d" upstream="scarthgap"/>
+  <project name="meta-openembedded"           remote="oe"             path="sources/meta-openembedded"          revision="b0c2c648a1af89e7a8dd4c2ec841f3bc0ed0ccb9" upstream="scarthgap"/>
   <!-- Toolchain alternatives -->
   <project name="meta-clang"                  remote="clang"          path="sources/meta-clang"                 revision="8c77b427408db01b8de4c04bd3d247c13c154f92" upstream="scarthgap"/>
   <project name="meta-lts-mixins"             remote="yocto"          path="sources/meta-lts-mixins"            revision="c19b6da5a3afd3c892b3b1b44983e993ac6d5308"/>
@@ -43,8 +43,8 @@
   <project name="meta-hostmobility-bsp"       remote="hmssh"          path="sources/meta-hostmobility-bsp"      revision="3f10c9ec3232fd292f6fdf48f060c9ebe7efeb70" upstream="main"/>
   <project name="meta-mobility-poky-distro"   remote="hmssh"          path="sources/meta-mobility-poky-distro"  revision="166c54eebcfc713e2a5fff0977764acea52c886c" upstream="master"/>
   <!-- Toradex SOM support -->
-  <project name="meta-toradex-bsp-common.git" remote="tdx"            path="sources/meta-toradex-bsp-common"    revision="dd56c35bd3ba55f1dedc022cf13ec906e0ddb1f3" upstream="scarthgap-7.x.y"/>
-  <project name="meta-toradex-ti.git"         remote="tdx"            path="sources/meta-toradex-ti"            revision="eb078c659fa9326a78ab2d3d88e99f9101e51a55" upstream="scarthgap-7.x.y"/>
+  <project name="meta-toradex-bsp-common.git" remote="tdx"            path="sources/meta-toradex-bsp-common"    revision="fac557f19e0d4576153b36c9715cfa7d1c89f5d3" upstream="scarthgap-7.x.y"/>
+  <project name="meta-toradex-ti.git"         remote="tdx"            path="sources/meta-toradex-ti"            revision="c56b5223a315613cb5fc8f71ba2e181df3e149fb" upstream="scarthgap-7.x.y"/>
   <!-- Variscite SOM support -->
   <project name="meta-variscite-bsp-common"   remote="variscite"      path="sources/meta-variscite-bsp-common"  revision="4713e95f2c92d041f32c9835e32d701a876b02d8" upstream="scarthgap_6.6.52-2.2.0_var01"/>
   <project name="meta-variscite-bsp-imx"      remote="variscite"      path="sources/meta-variscite-bsp-imx"     revision="d87593ff52152909b4ded866918264a42f0a2d5e" upstream="scarthgap_6.6.52-2.2.0_var01"/>
