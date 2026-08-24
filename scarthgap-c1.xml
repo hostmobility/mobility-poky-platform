@@ -5,5 +5,5 @@
 
   <include name="scarthgap.xml" />
 
-  <project name="meta-mobility-c1-distro"     remote="hmssh"          path="sources/meta-mobility-c1-distro"    revision="a16a2e6a53c3a26ee881212b9c53cfcc0a717be3"/>
+  <project name="meta-mobility-c1-distro"     remote="hmssh"          path="sources/meta-mobility-c1-distro"    revision="74650880eed6edceb0f3b58a7c1a63ca01a8102b" upstream="main"/>
 </manifest>
