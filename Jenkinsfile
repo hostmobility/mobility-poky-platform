@@ -15,5 +15,12 @@ pipeline {
                 echo 'Hello from mobility-poky-platform CI!'
             }
         }
+
+
+        stage('Find Open PRs') {
+            steps {
+                sh 'python3 ci/find_open_prs.py'
+            }
+        }
     }
 }
