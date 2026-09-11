@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds()
+    }
+
     /*triggers {
         cron('H 8-18 * * 1-5')
     }*/
@@ -43,9 +47,37 @@ pipeline {
                         def prSha = fields[1]
                         def prBranch = fields[2]
 
-                        echo "Triggering build-test for PR #${prNumber}"
+                        def status = sh(
+                            script: """
+                                python3 ci/sha_state.py get \
+                                    --sha '${prSha}'
+                            """,
+                            returnStdout: true
+                        ).trim()
+
+                        echo "PR #${prNumber}"
                         echo "SHA: ${prSha}"
                         echo "Branch: ${prBranch}"
+                        echo "Current CI state: ${status}"
+
+                        if (status == 'success') {
+                            echo 'Already successfully processed. Skipping.'
+                            return
+                        }
+
+                        if (status == 'running') {
+                            echo 'Already being processed. Skipping.'
+                            return
+                        }
+
+                        echo "Scheduling PR #${prNumber}"
+
+                        sh """
+                            python3 ci/sha_state.py set \
+                                --sha '${prSha}' \
+                                --status running \
+                                --pr '${prNumber}'
+                        """
 
                         build job: 'mobility-poky-platform-build',
                             wait: false,
