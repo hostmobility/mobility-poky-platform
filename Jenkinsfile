@@ -43,12 +43,6 @@ pipeline {
             }
         }
 
-        stage('Hello') {
-            steps {
-                echo 'Hello from mobility-poky-platform CI!'
-            }
-        }
-
         stage('Find Open PRs') {
             steps {
                 sh 'python3 ci/find_open_prs.py'
@@ -71,6 +65,7 @@ pipeline {
                         def prNumber = fields[0]
                         def prSha = fields[1]
                         def prBranch = fields[2]
+                        def prBase = fields[3]
 
                         def status = sh(
                             script: """
@@ -83,6 +78,7 @@ pipeline {
                         echo "PR #${prNumber}"
                         echo "SHA: ${prSha}"
                         echo "Branch: ${prBranch}"
+                        echo "Base: ${prBase}"
                         echo "Current CI state: ${status}"
 
                         if (status == 'success') {
@@ -118,6 +114,10 @@ pipeline {
                                 string(
                                     name: 'PR_BRANCH',
                                     value: prBranch
+                                ),
+                                string(
+                                    name: 'PR_BASE',
+                                    value: prBase
                                 )
                             ]
                     }

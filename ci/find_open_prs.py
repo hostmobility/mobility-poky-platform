@@ -47,8 +47,6 @@ def main():
 
     if not recent_prs:
         print("No open PRs updated within the last 30 days.")
-
-        # Always create the file so Jenkins knows the script ran correctly.
         open(CANDIDATE_FILE, "w").close()
         return
 
@@ -60,15 +58,17 @@ def main():
             number = pr["number"]
             sha = pr["head"]["sha"]
             branch = pr["head"]["ref"]
+            base_branch = pr["base"]["ref"]
 
             print(f"PR #{number}: {pr['title']}")
             print(f"  Updated:  {pr['updated_at']}")
             print(f"  Branch:   {branch}")
+            print(f"  Base:     {base_branch}")
             print(f"  Head SHA: {sha}")
             print()
 
             candidate_file.write(
-                f"{number}\t{sha}\t{branch}\n"
+                f"{number}\t{sha}\t{branch}\t{base_branch}\n"
             )
 
     print(f"Wrote candidates to {CANDIDATE_FILE}")
