@@ -100,7 +100,7 @@ pipeline {
                                 --pr '${prNumber}'
                         """
 
-                        build job: 'mobility-poky-platform-build',
+                        build job: '/hmx-regression-rig/hmx-build',
                             wait: false,
                             parameters: [
                                 string(
