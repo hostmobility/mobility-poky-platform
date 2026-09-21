@@ -5,9 +5,12 @@ pipeline {
         disableConcurrentBuilds()
     }
 
-    /*triggers {
-        cron('H 8-18 * * 1-5')
-    }*/
+    triggers {
+    cron('''
+        TZ=Europe/Stockholm
+        H 8-18 * * 1-5
+    ''')
+    }
 
     stages {
         stage('Checkout Info') {
