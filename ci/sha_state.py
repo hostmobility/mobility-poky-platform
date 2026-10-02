@@ -16,7 +16,7 @@ def load_state():
     with STATE_FILE.open("r") as f:
         return json.load(f)
 
-
+# Adding a comment that should be removed
 def save_state(state):
     STATE_DIR.mkdir(parents=True, exist_ok=True)
 
